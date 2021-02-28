@@ -50,12 +50,23 @@ MOV ch, 0
 MOV dh, 0
 MOV cl, 2
 
+MOV si, 0
+
+retry_read:
 MOV ah, 0x02
 MOV al, 1
 MOV bx, 0
 MOV dl, 0x00
 INT 0x13
-JC disk_load_error
+JNC final
+ADD si, 1
+CMP si, 3
+JAE disk_load_error
+; To reset disk and then retry
+MOV ah,0
+MOV dl, 0
+INT 0x13
+JMP retry_read
 
 final:
 HLT
