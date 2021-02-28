@@ -9,3 +9,9 @@ INT 0x10
 final:
 HLT
 JMP final
+
+os_hello_message:
+DB 0x0d, 0x0a
+DB "This is Netium OS"
+DB 0x0d, 0x0a
+DB 0

@@ -1,7 +1,7 @@
 ; ntmOS
 ; TAB=4
 
-CYLS equ 10
+CYLS EQU 10
 ORG 0x7c00
 
 JMP start
@@ -38,13 +38,14 @@ display:
 MOV al, [si]
 ADD si, 1
 CMP al, 0
-JE final
+JE load_boot_module
 MOV ah, 0x0e
 MOV bx, 15
 INT 0x10
 JMP display
 
 ; Load disk secion
+load_boot_module:
 MOV ax, 0x0820
 MOV es, ax
 MOV ch, 0
@@ -87,7 +88,10 @@ ADD ch, 1
 CMP ch, CYLS
 JB read_loop
 
-final:
+MOV [0x0ff0], ch    ; Copy the # of boot sectors to 0x0ff0
+JMP 0xc200      ; Load complete, jump to the loaded code
+
+final: ; Should never reach out to here as the it will jump to the 0xc200 already
 HLT
 JMP final
 
@@ -115,7 +119,7 @@ bootloader_greeting_message:
 DB 0x0d, 0x0a
 DB "NtM-Bootloader"
 DB 0x0d, 0x0a
-DB "For NetiumOS"
+DB "Reading Disk"
 DB 0x0a
 DB 0
 
