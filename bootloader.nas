@@ -30,7 +30,7 @@ MOV ss, ax
 MOV sp, 0x7c00
 MOV ds, ax
 MOV es, ax
-MOV si, message
+MOV si, bootloader_greeting_message
 
 ; Display the bootloading message
 display:
@@ -54,7 +54,7 @@ MOV ah, 0x02
 MOV al, 1
 MOV bx, 0
 MOV dl, 0x00
-MOV 0x13
+INT 0x13
 JC disk_load_error
 
 final:
@@ -65,7 +65,7 @@ disk_load_error:
 MOV si, error_message
 
 ; Display the bootloading message
-.error_diplay:
+.error_display:
 MOV al, [si]
 ADD si, 1
 CMP al, 0
@@ -81,7 +81,7 @@ DB "Load error"
 DB 0x0d, 0x0a
 DB 0
 
-message:
+bootloader_greeting_message:
 DB 0x0d, 0x0a
 DB "NtM-Bootloader"
 DB 0x0d, 0x0a
@@ -89,11 +89,13 @@ DB "For NetiumOS"
 DB 0x0a
 DB 0
 
+
+
 DB 0x1fe-($-$$) DUP 0
 DB 0x55, 0xaa
 
-DB 0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
-DB 4600 DUP 0 
+;DB 0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
+;DB 4600 DUP 0 
 
-DB 0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
-DB 1469432 DUP 0
+;DB 0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
+;DB 1469432 DUP 0
