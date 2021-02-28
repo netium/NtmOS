@@ -32,6 +32,7 @@ MOV ds, ax
 MOV es, ax
 MOV si, message
 
+; Display the bootloading message
 display:
 MOV al, [si]
 ADD si, 1
@@ -42,9 +43,43 @@ MOV bx, 15
 INT 0x10
 JMP display
 
+; Load disk secion
+MOV ax, 0x0820
+MOV es, ax
+MOV ch, 0
+MOV dh, 0
+MOV cl, 2
+
+MOV ah, 0x02
+MOV al, 1
+MOV bx, 0
+MOV dl, 0x00
+MOV 0x13
+JC disk_load_error
+
 final:
 HLT
 JMP final
+
+disk_load_error:
+MOV si, error_message
+
+; Display the bootloading message
+.error_diplay:
+MOV al, [si]
+ADD si, 1
+CMP al, 0
+JE final
+MOV ah, 0x0e
+MOV bx, 15
+INT 0x10
+JMP .error_display
+
+error_message:
+DB 0x0d, 0x0a
+DB "Load error"
+DB 0x0d, 0x0a
+DB 0
 
 message:
 DB 0x0d, 0x0a
