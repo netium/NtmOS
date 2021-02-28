@@ -1,6 +1,7 @@
 ; ntmOS
 ; TAB=4
 
+CYLS equ 10
 ORG 0x7c00
 
 JMP start
@@ -50,15 +51,17 @@ MOV ch, 0
 MOV dh, 0
 MOV cl, 2
 
+read_loop:
 MOV si, 0
 
+; Implement the retry-able read, will retry 3 times
 retry_read:
 MOV ah, 0x02
 MOV al, 1
 MOV bx, 0
 MOV dl, 0x00
 INT 0x13
-JNC final
+JNC next
 ADD si, 1
 CMP si, 3
 JAE disk_load_error
@@ -67,6 +70,22 @@ MOV ah,0
 MOV dl, 0
 INT 0x13
 JMP retry_read
+
+next:
+MOV ax, es
+ADD ax, 0x0020
+MOV es, ax
+ADD cl, 1
+CMP cl, 18
+JBE read_loop
+MOV cl, 1
+add dh, 1
+CMP dh, 2
+JB read_loop
+MOV dh, 0
+ADD ch, 1
+CMP ch, CYLS
+JB read_loop
 
 final:
 HLT
