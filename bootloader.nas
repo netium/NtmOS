@@ -27,8 +27,8 @@ MBR_MEM_ADDR EQU 0x7c00
     DD 0xFFFFFFFF
     DB "NETIUM-OS  "
     DB "FAT12   "
-    ;DB 18 DUP 0
-    RESB 18
+    DB 18 DUP (0)
+    ;RESB 18
 
 start:
     MOV ax, 0
@@ -127,12 +127,12 @@ read_message:
 bootloader_greeting_message:
     DB "NtM-Bootloader 0.1", 0x0d, 0x0a, 0x0
 
-    ;DB 0x1fe-($-$$) DUP 0
-    RESB 0x1fe-($-$$)
+    DB 0x1fe-($-$$) DUP (0)
+    ;RESB 0x1fe-($-$$)
     DB 0x55, 0xaa
 
     DB 0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
-    DB 4600 DUP 0 
+    DB 4600 DUP (0)
 
     DB 0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
-    DB 1469432 DUP 0
+    DB 1469432 DUP (0)
