@@ -2,6 +2,7 @@
 ; TAB=4
 
 CYLS EQU 10
+SP_BOTTOM EQU 0x7BFF
 ORG 0x7c00
 
 JMP start
@@ -23,26 +24,20 @@ DB 0, 0, 0x29
 DD 0xFFFFFFFF
 DB "NETIUM-OS  "
 DB "FAT12   "
-DB 18 DUP 0
+;DB 18 DUP 0
+RESB 18
 
 start:
 MOV ax, 0
 MOV ss, ax
-MOV sp, 0x7c00
+;MOV sp, 0x7c00
+MOV sp, SP_BOTTOM
 MOV ds, ax
 MOV es, ax
-MOV si, bootloader_greeting_message
+MOV bx, bootloader_greeting_message
+CALL display_message
 
-; Display the bootloading message
-display:
-MOV al, [si]
-ADD si, 1
-CMP al, 0
-JE load_boot_module
-MOV ah, 0x0e
-MOV bx, 15
-INT 0x10
-JMP display
+;MOV si, bootloader_greeting_message
 
 ; Load disk secion
 load_boot_module:
@@ -95,19 +90,32 @@ final: ; Should never reach out to here as the it will jump to the 0xc200 alread
 HLT
 JMP final
 
-disk_load_error:
-MOV si, error_message
+; Display message function
+; Parameters:
+;   - BX: The start index address of the message, the message shall be end with '\0'
+; Return:
+;   - No return
 
-; Display the bootloading message
-.error_display:
+display_message:
+MOV si, bx
+PUSH bx
+.display:
 MOV al, [si]
 ADD si, 1
 CMP al, 0
-JE final
+JE return
 MOV ah, 0x0e
 MOV bx, 15
 INT 0x10
-JMP .error_display
+JMP .display
+.return
+POP bx
+RET
+
+disk_load_error:
+MOV bx, error_message
+CALL display_message
+JMP final
 
 error_message:
 DB 0x0d, 0x0a
@@ -125,7 +133,8 @@ DB 0
 
 
 
-DB 0x1fe-($-$$) DUP 0
+;DB 0x1fe-($-$$) DUP 0
+RESB 0x1fe-($-$$)
 DB 0x55, 0xaa
 
 ;DB 0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
