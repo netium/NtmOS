@@ -4,6 +4,7 @@
 SP_TOP EQU 0x7c00	; To define the address of top of the stack
 START_MEM_ADDR EQU 0xc200	; The start address of the code in memory
 
+[bits 16]
 ORG START_MEM_ADDR
 MOV ax, 0x00
 MOV ss, ax

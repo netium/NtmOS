@@ -3,6 +3,8 @@ CC = gcc
 DD = dd
 # EDIMG = ./tools/edimg.exe
 
+.PHONY: all clean
+
 all: ntmos.img testapp
 
 ntmos.img: bootloader.img ntmio.sys
@@ -27,7 +29,7 @@ testapp: hlt.o boot_main.o test_app.c
 	$(CC) -Wall -m32 test_app.c hlt.o boot_main.o -o testapp
 
 boot_main.o: boot_main.c
-	$(CC) -Wall -m32 boot_main.c -c -o boot_main.o
+	$(CC) -Wall -m32 -nolibc -nostdlib -nodefaultlibs boot_main.c -c -o boot_main.o
 
 hlt.o: hlt.nas
 	$(ASM) hlt.nas -f coff -o hlt.o
@@ -35,4 +37,5 @@ hlt.o: hlt.nas
 clean:
 	rm *.sys *.img *.o testapp
 
-
+raw:
+	objcopy -O binary testapp testapp.bin

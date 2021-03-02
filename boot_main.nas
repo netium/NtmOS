@@ -1,40 +1,48 @@
-        ;FILE "boot_main.c"
-        SECTION .text
-        GLOBAL  boot_main
-        GLOBAL boot_main:function
+MISMATCH: "        .file   "boot_main.c""
+        .code16gcc: 
+        .text: 
+MISMATCH: "#APP"
+        .code16gcc: 
+MISMATCH: "#NO_APP"
+MISMATCH: "        .globl  boot_main"
+MISMATCH: "        .type   boot_main, @function"
 boot_main: 
-.LFB0: 
-MISMATCH: "        .cfi_startproc"
-MISMATCH: "        endbr64"
-MISMATCH: "        pushq   %rbp"
-MISMATCH: "        .cfi_def_cfa_offset 16"
-MISMATCH: "        .cfi_offset 6, -16"
-        movq    rbp,rsp
-MISMATCH: "        .cfi_def_cfa_register 6"
+boot_main.LFB0: 
+        boot_main.cfi_startproc: 
+MISMATCH: "        pushl   %ebp"
+MISMATCH: "        .cfi_def_cfa_offset 8"
+MISMATCH: "        .cfi_offset 5, -8"
+MISMATCH: "        movl    %esp, %ebp"
+MISMATCH: "        .cfi_def_cfa_register 5"
+MISMATCH: "        pushl   %ebx"
+MISMATCH: "        subl    $4, %esp"
+MISMATCH: "        .cfi_offset 3, -12"
+        call    __x86.get_pc_thunk.ax
+MISMATCH: "        addl    $_GLOBAL_OFFSET_TABLE_, %eax"
+MISMATCH: "        movl    %eax, %ebx"
         call    _io_hlt@PLT
         nop
-MISMATCH: "        popq    %rbp"
-MISMATCH: "        .cfi_def_cfa 7, 8"
+MISMATCH: "        addl    $4, %esp"
+MISMATCH: "        popl    %ebx"
+MISMATCH: "        .cfi_restore 3"
+MISMATCH: "        popl    %ebp"
+MISMATCH: "        .cfi_restore 5"
+MISMATCH: "        .cfi_def_cfa 4, 4"
         ret
-MISMATCH: "        .cfi_endproc"
-.LFE0: 
-        GLOBAL  boot_main:function (.-boot_main)
-        ;IDENT "GCC: (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0"
-MISMATCH: "        .section        .note.GNU-stack,"",@progbits"
-MISMATCH: "        .section        .note.gnu.property,"a""
-        ALIGN 8
-MISMATCH: "        .long    1f - 0f"
-MISMATCH: "        .long    4f - 1f"
-        dd       5
-.l0: 
-        db       'GNU'
-.l1: 
-        ALIGN 8
-        dd       0c0000002h
-MISMATCH: "        .long    3f - 2f"
-.l2: 
-        dd       03h
-.l3: 
-        ALIGN 8
-.l4: 
+        boot_main.cfi_endproc: 
+boot_main.LFE0: 
+MISMATCH: "        .size   boot_main, .-boot_main"
+        boot_main.section: .text.__x86.get_pc_thunk.ax,"axG",@progbits,__x86.get_pc_thunk.ax,comdat: 
+MISMATCH: "        .globl  __x86.get_pc_thunk.ax"
+MISMATCH: "        .hidden __x86.get_pc_thunk.ax"
+MISMATCH: "        .type   __x86.get_pc_thunk.ax, @function"
+__x86.get_pc_thunk.ax: 
+__x86.get_pc_thunk.ax.LFB1: 
+        __x86.get_pc_thunk.ax.cfi_startproc: 
+MISMATCH: "        movl    (%esp), %eax"
+        ret
+        __x86.get_pc_thunk.ax.cfi_endproc: 
+__x86.get_pc_thunk.ax.LFE1: 
+MISMATCH: "        .ident  "GCC: (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0""
+        __x86.get_pc_thunk.ax.section: .note.GNU-stack,"",@progbits: 
 
