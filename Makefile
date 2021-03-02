@@ -3,7 +3,7 @@ CC = gcc
 DD = dd
 LD = ld
 
-CCFLAGS = -Wall -m16
+CCFLAGS = -Wall -m32
 
 # EDIMG = ./tools/edimg.exe
 
@@ -12,8 +12,8 @@ CCFLAGS = -Wall -m16
 all: ntmos.img # testapp
 
 ntmos.img: bootloader.img ntmio.sys
-	dd if=/dev/zero of=ntmos_new.img bs=512 count=2880
-	mkfs.vfat -F12 ntmos_new.img
+	#dd if=/dev/zero of=ntmos_new.img bs=512 count=2880
+	#mkfs.vfat -F12 ntmos_new.img
 	#dd if=./bootloader.img of=ntmos.img bs=512 count=1
 	mv -f bootloader.img ntmos.img
 	mcopy -i ntmos.img ntmio.sys ::/
@@ -26,9 +26,9 @@ ntmos.img: bootloader.img ntmio.sys
 bootloader.img: bootloader.nas
 	$(ASM) -fbin bootloader.nas -o bootloader.img 
 
-ntmio.sys: ntmio.sys.o boot_main.o	
+ntmio.sys: ntmio.sys.o boot_main.o hlt.o
 	# $(LD) ntmio.sys.o boot_main.o -e _start -m elf_i386 -o ntmio.sys.tmp --oformat binary --verbose -Ttext 0xc200
-	$(LD) ntmio.sys.o boot_main.o -e _start -m elf_i386 -o ntmio.sys.tmp --verbose -Ttext 0xc200
+	$(LD) ntmio.sys.o boot_main.o hlt.o -e _start -m elf_i386 -o ntmio.sys.tmp -Ttext 0xc200
 	# mv ntmio.sys.tmp ntmio.sys
 	objcopy -O binary ntmio.sys.tmp ntmio.sys
 
@@ -42,7 +42,7 @@ boot_main.o: boot_main.c
 	$(CC) $(CCFLAGS) -nolibc -nostdlib -nodefaultlibs -fno-pie boot_main.c -mmanual-endbr -fcf-protection=branch -c -o boot_main.o
 
 hlt.o: hlt.nas
-	$(ASM) hlt.nas -f coff -o hlt.o
+	$(ASM) hlt.nas -felf32 -o hlt.o
 
 clean:
 	rm *.sys *.img *.o testapp
