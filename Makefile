@@ -6,7 +6,7 @@ DD = dd
 all: ntmos.img testapp
 
 ntmos.img: bootloader.img ntmio.sys
-	dd if=/dev/zero of=ntmos.img bs=512 count=2880
+	dd if=/dev/zero of=ntmos_new.img bs=512 count=2880
 	mkfs.vfat -F12 ntmos_new.img
 	#dd if=./bootloader.img of=ntmos.img bs=512 count=1
 	mv -f bootloader.img ntmos.img
