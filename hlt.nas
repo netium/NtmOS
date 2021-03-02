@@ -1,5 +1,5 @@
 ;[FORMAT "WCOFF"]
-;[BITS 32]
+[BITS 32]
 
 ;[FILE "hlt.nas"]
 

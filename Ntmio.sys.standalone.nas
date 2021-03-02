@@ -4,8 +4,6 @@
 SP_TOP EQU 0x7c00	; To define the address of top of the stack
 START_MEM_ADDR EQU 0xc200	; The start address of the code in memory
 
-extern boot_main
-
 section .text
     global _start
 
@@ -17,9 +15,6 @@ MOV ss, ax
 MOV ds, ax
 MOV sp, SP_TOP
 MOV bx, os_hello_message
-CALL display_message
-CALL boot_main
-MOV bx, os_call_main_done
 CALL display_message
 
 JMP final
@@ -53,6 +48,3 @@ display_message:
 
 os_hello_message:
 DB "This is Netium OS", 0x0d, 0x0a, 0x00
-
-os_call_main_done:
-DB "Call boot_main return", 0x0d, 0x0a, 0x00
