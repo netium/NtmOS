@@ -31,6 +31,10 @@ MOV bx, os_hello_message
 CALL display_message
 JMP continue
 
+loop:
+	hlt
+	jmp loop
+
 ; Display message function
 ; Parameters:
 ;   - BX: The start index address of the message, the message shall be end with '\0'
@@ -154,4 +158,6 @@ GDTR0:
 
 		ALIGNB	16
 bootpack:
-    CALL boot_main
+    ;CALL boot_main
+	hlt
+	jmp bootpack
