@@ -26,14 +26,15 @@ ntmos.img: bootloader.img ntmio.sys
 bootloader.img: bootloader.nas
 	$(ASM) -fbin bootloader.nas -o bootloader.img 
 
-ntmio.sys: ntmio.sys.o boot_main.o hlt.o
+ntmio.sys: ntmio.sys.o 
 	# $(LD) ntmio.sys.o boot_main.o -e _start -m elf_i386 -o ntmio.sys.tmp --oformat binary --verbose -Ttext 0xc200
-	$(LD) ntmio.sys.o boot_main.o hlt.o -e _start -m elf_i386 -o ntmio.sys.tmp -Ttext 0xc200
+	# $(LD) ntmio.sys.o boot_main.o hlt.o -e _start -m elf_i386 -o ntmio.sys.tmp -Ttext 0xc200
 	# mv ntmio.sys.tmp ntmio.sys
-	objcopy -O binary ntmio.sys.tmp ntmio.sys
+	# objcopy -O binary ntmio.sys.tmp ntmio.sys
+	mv -f ntmio.sys.o ntmio.sys
 
 ntmio.sys.o: ntmio.sys.nas
-	$(ASM) -felf32 ntmio.sys.nas -o ntmio.sys.o
+	$(ASM) -fbin ntmio.sys.nas -o ntmio.sys.o
 
 testapp: hlt.o boot_main.o test_app.c
 	$(CC) $(CCFLAGS) test_app.c hlt.o boot_main.o -o testapp

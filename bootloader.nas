@@ -5,11 +5,10 @@ CYLS EQU 10
 SP_BOTTOM EQU 0x7BFF
 MBR_MEM_ADDR EQU 0x7c00
 BOOT_DRIVE EQU 0x00
-BL2_BASE_MEM EQU 0x0820
+BL2_BASE_MEM EQU 0x0800
 
 %include "macro16.nas"
 
-    ;ORG 0x7c00
     ORG MBR_MEM_ADDR
 
     JMP start   ; Sector offset:0x000, short jump with (0xEB 0x?? 0x90)
@@ -28,15 +27,14 @@ BL2_BASE_MEM EQU 0x0820
     DW 18   ; Sector offset:0x018, Physical sectors per track
     DW 2    ; Sector offset:0x01A, Number of heads
     DD 0    ; Sector offset:0x01C, Hidden sectors
-    DD 2880 ; Sector offset:0x020, Large total logical sectors
+    DD 0000 ; Sector offset:0x020, Large total logical sectors
     DB 0    ; Sector offset:0x024, Physical drive number
     DB 0    ; Sector offset:0x025, Flags etc.
-    DB 0x29 ; Sector offset:0x026, Extended boot signature
+    DB 0x29 ; Sector offset:0x026, Extended boot signature, 0x29 means that the following three fields are available
     DD 0xFFFFFFFF       ; Sector offset:0x27,   Volume serial number
-    DB "NETIUM-OS  "    ; Sector offset:0x02B, Volume label
-    DB "FAT12   "       ; Sector offset:0x36,   File-system type
-    DB 18 DUP (0)
-    ;RESB 18
+    DB "NO NAME    "    ; Sector offset:0x02B, Volume label
+    DB "FAT16   "       ; Sector offset:0x36,   File-system type
+    ; DB 18 DUP (0)
 
 start:
     MOV ax, 0
@@ -89,10 +87,8 @@ next:
     ADD ch, 1
     CMP ch, CYLS
     JB read_loop
-
-    MOV [0x0ff0], ch    ; Copy the # of boot sectors to 0x0ff0
-
-    JMP 0xc200      ; Load complete, jump to the loaded code, never come back
+    ; MOV [0x0ff0], ch    ; Copy the # of boot sectors to 0x0ff0
+    JMP 0xc000      ; Load complete, jump to the loaded code, never come back
 
 ; Display message function
 ; Parameters:
@@ -122,17 +118,13 @@ final:
     hlt
     jmp final
 
-i_am_here_message: ; Fore debug output
-    DB "I am here", 0x0d, 0x0a, 0x0
+i_am_here_message    DB "H",0x0
 
-error_message:
-    DB "Error", 0x0d, 0x0a, 0x0
+error_message    DB "E", 0x0
 
-read_message:
-    DB "Read...", 0x0d, 0x0a, 0x0
+read_message    DB "R", 0x0
 
-bootloader_greeting_message:
-    DB "NtM-Bootloader 0.1", 0x0d, 0x0a, 0x0
+bootloader_greeting_message    DB "NtM-Bootloader 0.1", 0x0d, 0x0a, 0x0
 
     DB 0x1fe-($-$$) DUP (0)
     ;RESB 0x1fe-($-$$)
