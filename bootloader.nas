@@ -5,7 +5,7 @@ CYLS EQU 10
 SP_BOTTOM EQU 0x7BFF
 MBR_MEM_ADDR EQU 0x7c00
 BOOT_DRIVE EQU 0x00
-BL2_BASE_MEM EQU 0x0800
+BL2_BASE_MEM EQU 0x07E00
 
 SECTORS_PER_TRACK EQU 18
 NUM_OF_HEAD EQU 2
@@ -61,6 +61,7 @@ load_boot_module:
     JE bl2_load_complete
     DEC cx
     ADD bx, 0x200   ; Advanced the address in BX by 512 bytes
+    jmp load_boot_module
 
 bl2_load_complete:
     MOV bx, bl2_load_complete_message

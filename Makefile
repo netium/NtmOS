@@ -17,6 +17,8 @@ ntmos.img: bootloader.img ntmio.sys
 	#dd if=./bootloader.img of=ntmos.img bs=512 count=1
 	mv -f bootloader.img ntmos.img
 	mcopy -i ntmos.img ntmio.sys ::/
+	mcopy -i ntmos.img ntmio.sys ::/kernel.sys
+
 # ntmos.img: bootloader.img ntmio.sys
 #	$(EDIMG)  imgin:./tools/fdimg0at.tek \
 #		wbinimg src:./bootloader.img len:512 from:0 to:0 \

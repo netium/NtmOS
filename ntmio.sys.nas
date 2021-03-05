@@ -4,14 +4,22 @@
 %include "macro16.nas"
 
 SP_TOP EQU 0x7c00	; To define the address of top of the stack
-START_MEM_ADDR EQU 0x0800	; The start address of the code in memory
+START_MEM_ADDR EQU 0x07E00	; The start address of the code in memory
 NUM_OF_HEAD EQU 2
 SECTORS_PER_TRACK EQU 18
+SECTORS_PER_FAT EQU 9
+SECTORS_FOR_ROOT_DIR EQU (224 * 32) / 512
+BOOT_DRIVE EQU 0x00
+
 KERNEL_FILE_BASE_MEM_ADDR EQU 0x8000
+
+MBR_BASE_MEM_ADDR EQU 0x07C00
+FAT_BASE_MEM_ADDR EQU 0x500
+ROOT_DIR_BASE_MEM_ADDR EQU FAT_BASE_MEM_ADDR + (9 * 0x200)
 
 ORG START_MEM_ADDR
 
-MOV ax, 0x00
+XOR ax, ax
 MOV ss, ax
 MOV ds, ax
 MOV sp, SP_TOP
@@ -20,9 +28,65 @@ CALL display_message
 
 reset_drive 0x00
 
-loop:
+; Load FAT section
+load_fat:
+    MOV bx, FAT_BASE_MEM_ADDR 
+    XOR ax, ax
+    MOV es, ax
+    MOV cx, SECTORS_PER_FAT
+    MOV ax, 1 
+    CALL read_sector
+    CMP cx, 0
+    JE load_root_dir
+    DEC cx
+    ADD bx, 0x200   ; Advanced the address in BX by 512 bytes
+    jmp load_fat
+
+load_root_dir:
+; Load Root section
+    MOV bx, ROOT_DIR_BASE_MEM_ADDR
+    XOR ax, ax
+    MOV cx, SECTORS_FOR_ROOT_DIR
+    MOV ax, 1 + (2 * SECTORS_PER_FAT) 
+    CALL read_sector
+    CMP cx, 0
+    JE load_kernel_file 
+    DEC cx
+    ADD bx, 0x200
+    jmp load_root_dir
+
+load_kernel_file:
+    XOR ax, ax
+    MOV ds, ax
+    MOV es, ax
+    MOV dx, 224
+    MOV ax, ROOT_DIR_BASE_MEM_ADDR
+.read_one_entry:
+    MOV si, ax
+    MOV di, kernel_filename
+    MOV cx, 11
+    REPE CMPSB
+    CMP cx, 0
+    JE get_kernel_start_cluster_id
+    ADD ax, 32
+    DEC dx
+    CMP dx, 0
+    JA .read_one_entry
+    MOV BX, error_not_kernel_message
+    CALL display_message
+    jmp final
+
+get_kernel_start_cluster_id:
+    ; Don't display, bug in display_message to overwrite the register
+    ; MOV bx, kernel_file_found_message
+    ; CALL display_message
+    MOV bp, ax
+    MOV bx, WORD[bp+26] ; read start cluster id
+    MOV cx, WORD[bp+28] ; read size
+
+final:
 	hlt
-	jmp loop
+	jmp final
 
 ; Display message function
 ; Parameters:
@@ -115,4 +179,13 @@ read_sector:
   pop     ax
   jmp     .read_a_sec    
 
+.boot_failure:
+    MOV bx, error_message
+    CALL display_message
+    jmp final
+
+error_message DB "Failed to read disk", 0x0d, 0x0a, 0x00
+error_not_kernel_message DB "Cannot find kernel file", 0x0d, 0x0a, 0x00
 os_hello_message	DB "Booting Netium OS...", 0x0d, 0x0a, 0x00
+kernel_file_found_message DB "Find kernel file, start to load it...", 0x0d, 0x0a, 0x00
+kernel_filename    DB "KERNEL  SYS"
