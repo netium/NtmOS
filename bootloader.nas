@@ -54,14 +54,14 @@ load_boot_module:
     MOV bx, BL2_BASE_MEM
     XOR ax, ax
     MOV es, ax
-    MOV cx, 40
     MOV ax, 1 + 2 * 9 + (224 * 32 / 512)
+.load_loop:    
     CALL read_sector
-    CMP cx, 0
-    JE bl2_load_complete
-    DEC cx
+    CMP ax, 1 + 2 * 9 + (224 * 32 / 512) + 5
+    JA bl2_load_complete
+    INC ax
     ADD bx, 0x200   ; Advanced the address in BX by 512 bytes
-    jmp load_boot_module
+    jmp .load_loop
 
 bl2_load_complete:
     MOV bx, bl2_load_complete_message

@@ -11,7 +11,7 @@ SECTORS_PER_FAT EQU 9
 SECTORS_FOR_ROOT_DIR EQU (224 * 32) / 512
 BOOT_DRIVE EQU 0x00
 
-KERNEL_FILE_BASE_MEM_ADDR EQU 0x8000
+KERNEL_FILE_BASE_MEM_ADDR EQU 0xa000
 
 MBR_BASE_MEM_ADDR EQU 0x07C00
 FAT_BASE_MEM_ADDR EQU 0x500
@@ -89,7 +89,6 @@ get_kernel_start_cluster_id:
     MOV ax, dx                              ; Copy start cluster id from DX to AX
     ADD ax, 1 + 9 * 2 + (224 * 32) / 512 - 2   ; Calculate the real sector
     CALL read_sector                        ; Read sector
-    MOV WORD [0x0FF00], AX
     MOV ax, dx                              ; Copy start cluster id from DX to AX
     MOV cx, 12                              ; 12bits per FAT entry
     MUL cx                                  ; 12bits per FAT entry 
@@ -111,8 +110,45 @@ init_gdt:
     MOV bx, kernel_file_load_complete
     CALL display_message
 
+    ; Now the FAT table is not needed anymore
+    ; Initialize the GDT
+    MOV ax, 0
+    MOV es, ax
+    MOV di, 0x800
+
+    ; GDT #0, NULL descriptor 
+    MOV cx, 4
+    REP STOSW
+
+    ; GDT #1, code segment descriptor
+    MOV es:[di], WORD 0xffff
+    MOV es:[di+2], WORD 0x0000
+    MOV es:[di+4], BYTE 0x00
+    MOV es:[di+5], BYTE 0x9a
+    MOV es:[di+6], BYTE 0xcf 
+    MOV es:[di+7], BYTE 0x00
+    add di, 8
+
+    ; GDT #2, data segment descriptor
+    MOV es:[di], WORD 0xffff
+    MOV es:[di+2], WORD 0x0000
+    MOV es:[di+4], WORD 0x00
+    MOV es:[di+5], WORD 0x92
+    MOV es:[di+6], WORD 0xcf
+    MOV es:[di+7], WORD 0x00
+
+    LGDT [gdt]
+
 init_idt:
+    CLI     ; Disable interrupt as we will set an empty IDT so no code to handle the interrupt
+    LIDT [idt]
+
 enable_a20:
+    ; Fast A20 Method first
+     in al, 0x92
+     or al, 2
+     out 0x92, al
+
 init_protect_mode:
 
 final:
@@ -221,6 +257,13 @@ read_sector:
 
 BITS_PER_BYTE DB 8
 BITS_PER_FAT_ENTRY DB 12
+
+gdt DW 24
+    DD 0x800
+
+idt DW 2048
+    DD 0x00
+
 error_message DB "Failed to read disk", 0x0d, 0x0a, 0x00
 error_not_kernel_message DB "Cannot find kernel file", 0x0d, 0x0a, 0x00
 os_hello_message	DB "Booting Netium OS...", 0x0d, 0x0a, 0x00
