@@ -110,6 +110,14 @@ init_gdt:
     MOV bx, kernel_file_load_complete
     CALL display_message
 
+switch_vga_mode:
+    ; Switch to 320x200x8 mode
+    MOV al, 0x13
+    MOV ah, 0x00
+    INT 0x10
+    MOV bx, switch_vga_mode_message
+    CALL display_message
+
     ; Now the FAT table is not needed anymore
     ; Initialize the GDT
     MOV ax, 0
@@ -150,6 +158,35 @@ enable_a20:
      out 0x92, al
 
 init_protect_mode:
+    ; Enable the 32bit protection mode
+    MOV eax, cr0
+    or eax, 1
+    MOV cr0, eax
+
+clean_prefetch_queue:
+    ; First need to clean up the prefetch queue to remove any queued 16bit commands
+    jmp prepare_32bit_registers
+    nop
+    nop
+    nop 
+    nop
+
+prepare_32bit_registers:
+    mov ax, 0x10
+    mov ds, ax
+    MOV es, ax
+    MOV fs, ax
+    MOV gs, ax
+    MOV ss, ax
+    MOV esp, 0x2ffff
+
+boot_to_kernel:
+    ; 32bit long jump in 16bit mode
+    DB 0x66
+    DB 0xEA
+    DD KERNEL_FILE_BASE_MEM_ADDR
+    DW 0x0008
+    ; Goodbyte BL2, now the kernel journey start!
 
 final:
 	hlt
@@ -269,5 +306,9 @@ error_not_kernel_message DB "Cannot find kernel file", 0x0d, 0x0a, 0x00
 os_hello_message	DB "Booting Netium OS...", 0x0d, 0x0a, 0x00
 kernel_file_found_message DB "Find kernel file, start to load it...", 0x0d, 0x0a, 0x00
 kernel_file_load_complete DB "Complete to load the kernel...", 0x0d, 0x0a, 0x00
+inited_gdt_message DB "GDT initialized!", 0x0d, 0x0a, 0x00
+inited_idt_message DB "IDT initialized!", 0x0d, 0x0a, 0x00
+enabled_a20_message DB "A20 enabled!", 0x0d, 0x0a, 0x00
+switch_vga_mode_message DB "Switch VGA mode!", 0x0d, 0x0a, 0x00
 kernel_filename    DB "KERNEL  SYS"
 
