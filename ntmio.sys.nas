@@ -81,8 +81,39 @@ get_kernel_start_cluster_id:
     ; MOV bx, kernel_file_found_message
     ; CALL display_message
     MOV bp, ax
-    MOV bx, WORD[bp+26] ; read start cluster id
-    MOV cx, WORD[bp+28] ; read size
+    MOV bx, KERNEL_FILE_BASE_MEM_ADDR
+    MOV dx, WORD[bp+26] ; read start cluster id
+    MOV bp, FAT_BASE_MEM_ADDR
+
+.load_kernel_to_mem_loop:
+    MOV ax, dx                              ; Copy start cluster id from DX to AX
+    ADD ax, 1 + 9 * 2 + (224 * 32) / 512 - 2   ; Calculate the real sector
+    CALL read_sector                        ; Read sector
+    MOV WORD [0x0FF00], AX
+    MOV ax, dx                              ; Copy start cluster id from DX to AX
+    MOV cx, 12                              ; 12bits per FAT entry
+    MUL cx                                  ; 12bits per FAT entry 
+    XOR dx, dx                              ; Clear DX for division
+    MOV cx, 8                              ; 8 bit per byte
+    DIV cx  ; AX: start bytes offset in FAT, DX: if not aligned, then the lower 4 bits
+    mov si, ax
+    MOV ax, word [bp + si]
+    MOV cl, dl
+    SHR ax, cl
+    AND ax, 0x0fff
+    CMP ax, 0x0fef
+    JA init_gdt 
+    MOV dx, ax
+    ADD bx, 0x200
+    JMP .load_kernel_to_mem_loop
+
+init_gdt:
+    MOV bx, kernel_file_load_complete
+    CALL display_message
+
+init_idt:
+enable_a20:
+init_protect_mode:
 
 final:
 	hlt
@@ -94,6 +125,7 @@ final:
 ; Return:
 ;   - No return value
 display_message:
+    pusha
     MOV si, bx
 .display:
     MOV al, [si]
@@ -105,6 +137,7 @@ display_message:
     INT 0x10
     JMP .display
 .return:
+    popa
     RET
 
 ; Read a sector to target memory address
@@ -117,6 +150,7 @@ read_sector:
   xor     cx, cx                      ; Set try count = 0
  
 .read_a_sec:
+  push dx
   push    ax                          ; Store logical block
   push    cx                          ; Store try number
   push    bx                          ; Store data buffer offset
@@ -161,6 +195,7 @@ read_sector:
   ; On success, return to caller.
   pop     cx                          ; Discard try number
   pop     ax                          ; Get logical block from stack
+  pop dx
   ret
  
   ; The read has failed.
@@ -184,8 +219,12 @@ read_sector:
     CALL display_message
     jmp final
 
+BITS_PER_BYTE DB 8
+BITS_PER_FAT_ENTRY DB 12
 error_message DB "Failed to read disk", 0x0d, 0x0a, 0x00
 error_not_kernel_message DB "Cannot find kernel file", 0x0d, 0x0a, 0x00
 os_hello_message	DB "Booting Netium OS...", 0x0d, 0x0a, 0x00
 kernel_file_found_message DB "Find kernel file, start to load it...", 0x0d, 0x0a, 0x00
+kernel_file_load_complete DB "Complete to load the kernel...", 0x0d, 0x0a, 0x00
 kernel_filename    DB "KERNEL  SYS"
+

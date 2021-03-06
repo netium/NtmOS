@@ -12,12 +12,12 @@ CCFLAGS = -Wall -m32
 all: ntmos.img # testapp
 
 ntmos.img: bootloader.img ntmio.sys
-	#dd if=/dev/zero of=ntmos_new.img bs=512 count=2880
-	#mkfs.vfat -F12 ntmos_new.img
+	dd if=/dev/zero of=ntmos_new.img bs=512 count=2880
+	mkfs.vfat -F12 ntmos_new.img
 	#dd if=./bootloader.img of=ntmos.img bs=512 count=1
 	mv -f bootloader.img ntmos.img
 	mcopy -i ntmos.img ntmio.sys ::/
-	mcopy -i ntmos.img ntmio.sys ::/kernel.sys
+	mcopy -i ntmos.img bootloader.nas ::/kernel.sys
 
 # ntmos.img: bootloader.img ntmio.sys
 #	$(EDIMG)  imgin:./tools/fdimg0at.tek \

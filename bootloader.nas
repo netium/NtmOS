@@ -27,10 +27,10 @@ NUM_OF_HEAD EQU 2
     DW 2880 ; Sector offset:0x013, Total logical sectors
     DB 0xf0 ; Sector offset:0x015, Media descriptor
     DW 9    ; Sector offset:0x016, Logical sectors per FAT
-    DW 18   ; Sector offset:0x018, Physical sectors per track
+    DW SECTORS_PER_TRACK ; Sector offset:0x018, Physical sectors per track
     DW 2    ; Sector offset:0x01A, Number of heads
     DD 0    ; Sector offset:0x01C, Hidden sectors
-    DD 0000 ; Sector offset:0x020, Large total logical sectors
+    DD 0    ; Sector offset:0x020, Large total logical sectors
     DB 0    ; Sector offset:0x024, Physical drive number
     DB 0    ; Sector offset:0x025, Flags etc.
     DB 0x29 ; Sector offset:0x026, Extended boot signature, 0x29 means that the following three fields are available
@@ -184,11 +184,13 @@ bl2_load_complete_message DB "BL2 load complete", 0x0d, 0x0a, 0x00
 bootloader_greeting_message    DB "NtM-Bootloader 0.1", 0x0d, 0x0a, 0x00
 
     DB 0x1fe-($-$$) DUP (0)
-    ;RESB 0x1fe-($-$$)
+
     DB 0x55, 0xaa   ; Sector offset:0x1FE, Boot sector signature (0x55, 0xAA)
 
+    ; FAT table 1
     DB 0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
     DB 4600 DUP (0)
 
+    ; FAT table 2
     DB 0xf0, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00
     DB 1469432 DUP (0)
