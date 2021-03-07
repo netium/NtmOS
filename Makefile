@@ -12,18 +12,11 @@ CCFLAGS = -Wall -m32
 all: ntmos.img # testapp
 
 ntmos.img: bootloader.img ntmio.sys kernel.sys
-	dd if=/dev/zero of=ntmos_new.img bs=512 count=2880
-	mkfs.vfat -F12 ntmos_new.img
-	#dd if=./bootloader.img of=ntmos.img bs=512 count=1
+	# dd if=/dev/zero of=ntmos_new.img bs=512 count=2880
+	# mkfs.vfat -F12 ntmos_new.img
 	mv -f bootloader.img ntmos.img
 	mcopy -i ntmos.img ntmio.sys ::/
 	mcopy -i ntmos.img kernel.sys ::/
-
-# ntmos.img: bootloader.img ntmio.sys
-#	$(EDIMG)  imgin:./tools/fdimg0at.tek \
-#		wbinimg src:./bootloader.img len:512 from:0 to:0 \
-#		copy from:ntmio.sys to:@: \
-#		imgout:ntmos.img
 
 bootloader.img: bootloader.nas
 	$(ASM) -fbin bootloader.nas -o bootloader.img 
@@ -38,18 +31,21 @@ ntmio.sys: ntmio.sys.o
 ntmio.sys.o: ntmio.sys.nas
 	$(ASM) -fbin ntmio.sys.nas -o ntmio.sys.o
 
-kernel.sys: kernel.o
-	$(LD) kernel.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
-	objcopy -O binary -j.text kernel.sys.tmp kernel.sys
+kernel.sys: kernel.o kernel_functions.o k_vga.o
+	$(LD) kernel.o kernel_functions.o k_vga.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
+	objcopy -O binary -j.text -j.data kernel.sys.tmp kernel.sys
 
 testapp: hlt.o boot_main.o test_app.c
 	$(CC) $(CCFLAGS) test_app.c hlt.o boot_main.o -o testapp
 
-kernel.o: kernel.c
+kernel.o: kernel.c 
 	$(CC) $(CCFLAGS) -nolibc -nostdlib -nodefaultlibs -fno-pie kernel.c -mmanual-endbr -fcf-protection=branch -c -o kernel.o
 
-hlt.o: hlt.nas
-	$(ASM) hlt.nas -felf32 -o hlt.o
+kernel_functions.o: kernel_functions.nas
+	$(ASM) kernel_functions.nas -felf32 -o kernel_functions.o
+
+k_vga.o: k_vga.c k_vga.h
+	$(CC) $(CCFLAGS) -nolibc -nostdlib -nodefaultlibs -fno-pie k_vga.c -mmanual-endbr -fcf-protection=branch -c -o k_vga.o
 
 clean:
 	rm *.sys *.img *.o testapp
