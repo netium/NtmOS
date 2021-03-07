@@ -1,44 +1,40 @@
 #include "gui.h"
 #include "k_vga.h"
+#include "font8x8_basic.h"
 
 void render_ui() {
     screen_info_t screen_info;
     screen_info.res_width = 320;
     screen_info.res_height = 200;
     screen_info.pvram = (unsigned char *)0xa0000;
-    screen_info.pcharfonts = (unsigned char *)0;
+    screen_info.pcharfonts = (unsigned char *)font8x8_basic;
     screen_info.font_width = 8;
-    screen_info.font_height = 16;
-
-    int xsize, ysize;
+    screen_info.font_height = 8;
 
     init_palette();
 
-    xsize = 320;
-    ysize = 200;
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_008484, 0, 0, screen_info.res_width - 1, screen_info.res_height - 29);
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_C6C6C6, 0, screen_info.res_height - 28, screen_info.res_width - 1, screen_info.res_height - 28);
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_FFFFFF, 0, screen_info.res_height - 27, screen_info.res_width - 1, screen_info.res_height - 27);
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_C6C6C6, 0, screen_info.res_height - 26, screen_info.res_width - 1, screen_info.res_height - 1);
 
-    boxfill8(screen_info.pvram, xsize, COL8_008484, 0, 0, xsize - 1, ysize - 29);
-    boxfill8(screen_info.pvram, xsize, COL8_C6C6C6, 0, ysize - 28, xsize - 1, ysize - 28);
-    boxfill8(screen_info.pvram, xsize, COL8_FFFFFF, 0, ysize - 27, xsize - 1, ysize - 27);
-    boxfill8(screen_info.pvram, xsize, COL8_C6C6C6, 0, ysize - 26, xsize - 1, ysize - 1);
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_FFFFFF, 3, screen_info.res_height - 24, 59, screen_info.res_height - 24);
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_FFFFFF, 2, screen_info.res_height - 24, 2, screen_info.res_height - 4);
 
-    boxfill8(screen_info.pvram, xsize, COL8_FFFFFF, 3, ysize - 24, 59, ysize - 24);
-    boxfill8(screen_info.pvram, xsize, COL8_FFFFFF, 2, ysize - 24, 2, ysize - 4);
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_848484, 3, screen_info.res_height - 4, 59, screen_info.res_height - 4);
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_848484, 59, screen_info.res_height - 23, 59, screen_info.res_height - 5);
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_000000, 2, screen_info.res_height - 3, 59, screen_info.res_height - 3);
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_000000, 60, screen_info.res_height-24, 60, screen_info.res_height - 3);
 
-    boxfill8(screen_info.pvram, xsize, COL8_848484, 3, ysize - 4, 59, ysize - 4);
-    boxfill8(screen_info.pvram, xsize, COL8_848484, 59, ysize - 23, 59, ysize - 5);
-    boxfill8(screen_info.pvram, xsize, COL8_000000, 2, ysize - 3, 59, ysize - 3);
-    boxfill8(screen_info.pvram, xsize, COL8_000000, 60, ysize-24, 60, ysize - 3);
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_848484, screen_info.res_width - 47, screen_info.res_height - 24, screen_info.res_width - 4, screen_info.res_height - 24);
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_848484, screen_info.res_width-47, screen_info.res_height-23, screen_info.res_width-47, screen_info.res_height - 4);
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_FFFFFF, screen_info.res_width-47, screen_info.res_height - 3, screen_info.res_width-4, screen_info.res_height -3);
+    boxfill8(screen_info.pvram, screen_info.res_width, COL8_FFFFFF, screen_info.res_width -3 , screen_info.res_height - 24, screen_info.res_width - 3, screen_info.res_height -3 );
 
-    boxfill8(screen_info.pvram, xsize, COL8_848484, xsize - 47, ysize - 24, xsize - 4, ysize - 24);
-    boxfill8(screen_info.pvram, xsize, COL8_848484, xsize-47, ysize-23, xsize-47, ysize - 4);
-    boxfill8(screen_info.pvram, xsize, COL8_FFFFFF, xsize-47, ysize - 3, xsize-4, ysize -3);
-    boxfill8(screen_info.pvram, xsize, COL8_FFFFFF, xsize -3 , ysize - 24, xsize - 3, ysize -3 );
-
-    // drawstring(&screen_info, 0, 0, "Hello, world!");
+    drawstring(&screen_info, 1, 1, "Hello, world!");
 }
 
-void drawstring(screen_info_t *pscreen, int line, int col, unsigned char *str) {
+void drawstring(screen_info_t *pscreen, int line, int col, char *str) {
     if (pscreen == 0)
         return;
 
@@ -74,7 +70,7 @@ void drawchar(screen_info_t *pscreen, int x, int y, char ch, int palatte_id) {
 
     unsigned char *pvram_addr;
 
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 8; i++) {
         pvram_addr = pscreen->pvram + (y + i) * pscreen->res_width + x;
         int d = pfont[i];
         if ((d & 0x80) != 0) pvram_addr[0] = palatte_id;
