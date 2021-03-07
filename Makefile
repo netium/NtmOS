@@ -34,8 +34,8 @@ ntmio.sys: ntmio.sys.o
 ntmio.sys.o: ntmio.sys.nas
 	$(ASM) -fbin ntmio.sys.nas -o ntmio.sys.o
 
-kernel.sys: kernel.o kernel_functions.o k_vga.o gui.o
-	$(LD) kernel.o kernel_functions.o gui.o k_vga.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
+kernel.sys: kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o
+	$(LD) kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
 	objcopy -O binary -j.text -j.data -j.bss -j.rodata kernel.sys.tmp kernel.sys
 
 testapp: hlt.o boot_main.o test_app.c
@@ -43,6 +43,9 @@ testapp: hlt.o boot_main.o test_app.c
 
 kernel.o: kernel.c 
 	$(CC) $(CCFLAGS) -nolibc -nostdlib -nodefaultlibs -fno-pie kernel.c -mmanual-endbr -fcf-protection=branch -c -o kernel.o
+
+kernel_inits.o: kernel_inits.c
+	$(CC) $(CCFLAGS) -nolibc -nostdlib -nodefaultlibs -fno-pie kernel_inits.c -mmanual-endbr -fcf-protection=branch -c -o kernel_inits.o
 
 kernel_functions.o: kernel_functions.nas
 	$(ASM) kernel_functions.nas -felf32 -o kernel_functions.o
