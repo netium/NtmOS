@@ -1,5 +1,5 @@
-; ntmOS
-; TAB=4
+; Author: Bo Zhou (zb.public@outlook.com)
+; Under GPLv2.0 lincense
 
 CYLS EQU 10
 SP_BOTTOM EQU 0x7BFF

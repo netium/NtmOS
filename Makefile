@@ -1,3 +1,6 @@
+# Author: Bo Zhou (zb.public@outlook.com)
+# Under GPLv2.0 lincense
+
 ASM = nasm
 CC = gcc
 DD = dd

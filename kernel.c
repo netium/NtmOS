@@ -1,4 +1,5 @@
-// asm(".code16gcc");
+// Author: Bo Zhou (zb.public@outlook.com)
+// Under GPLv2.0 lincense
 
 #include "kernel_functions.h"
 #include "gui.h"

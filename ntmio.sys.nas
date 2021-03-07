@@ -1,5 +1,5 @@
-; Ntmio.sys
-; The first file for the Netium OS
+; Author: Bo Zhou (zb.public@outlook.com)
+; Under GPLv2.0 lincense
 
 %include "macro16.nas"
 
