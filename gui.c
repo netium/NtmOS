@@ -38,7 +38,7 @@ void render_ui() {
     boxfill8(screen_info.pvram, screen_info.res_width, COL8_FFFFFF, screen_info.res_width-47, screen_info.res_height - 3, screen_info.res_width-4, screen_info.res_height -3);
     boxfill8(screen_info.pvram, screen_info.res_width, COL8_FFFFFF, screen_info.res_width -3 , screen_info.res_height - 24, screen_info.res_width - 3, screen_info.res_height -3 );
 
-    drawstring(&screen_info, 1, 1, "Hello, world!");
+    drawstring(&screen_info, 0, 0, "NtmOS v0.0.0.1");
 
 }
 
