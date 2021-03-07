@@ -18,8 +18,18 @@
 #define COL8_008484 14
 #define COL8_848484 15
 
-void render_ui(void);
+typedef struct {
+    int res_width;
+    int res_height;
+    unsigned char *pvram;
+    unsigned char *pcharfonts;
+    int font_width;
+    int font_height;
+} screen_info_t;
 
+void render_ui();
+void drawstring(screen_info_t *pscreen, int line, int col, unsigned char *str);
+void drawchar(screen_info_t *pscreen, int x, int y, char ch, int palatte_id);
 void boxfill8(unsigned char *vram, int xszie, unsigned char c, int x0, int y0, int x1, int y1);
 
 #endif
