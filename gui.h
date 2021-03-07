@@ -18,6 +18,8 @@
 #define COL8_008484 14
 #define COL8_848484 15
 
+void render_ui(void);
+
 void boxfill8(unsigned char *vram, int xszie, unsigned char c, int x0, int y0, int x1, int y1);
 
 #endif
