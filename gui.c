@@ -1,11 +1,9 @@
+// Author: Bo Zhou (zb.public@outlook.com)
+// Under GPL 2.0 License
+
 #include "gui.h"
 #include "k_vga.h"
 #include "font8x8_basic.h"
-
-    unsigned char fontA[8] = {
-        0x00, 0x18, 0x18, 0x18, 0x18, 0x24, 0x24, 0x24
-    };
-
 
 void drawfont8(screen_info_t *pscreen, int x, int y, char c, unsigned char *font);
 
@@ -113,16 +111,6 @@ void drawfont8(screen_info_t *pscreen, int x, int y, char c, unsigned char *font
     for (i = 0; i < 8; i++) {
         p = pscreen->pvram + (y + i) * pscreen->res_width + x;
         d = font[i];
-        /*
-        p[0] = ((d & 0x01 != 0) ? c : COL8_000000);
-        p[1] = ((d & 0x02 != 0) ? c : COL8_000000);
-        p[2] = ((d & 0x04 != 0) ? c : COL8_000000);
-        p[3] = ((d & 0x08 != 0) ? c : COL8_000000);
-        p[4] = ((d & 0x10 != 0) ? c : COL8_000000);
-        p[5] = ((d & 0x20 != 0) ? c : COL8_000000);
-        p[6] = ((d & 0x40 != 0) ? c : COL8_000000);
-        p[7] = ((d & 0x80 != 0) ? c : COL8_000000);
-        */
 
         if ((d & 0x80) != 0) p[7] = c;
         if ((d & 0x40) != 0) p[6] = c;
