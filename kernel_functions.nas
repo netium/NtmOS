@@ -10,6 +10,8 @@ GLOBAL _io_in32
 GLOBAL _get_eflags
 GLOBAL _set_eflags
 
+GLOBAL _get_eip
+
 section .text
 
 _io_hlt:
@@ -65,4 +67,8 @@ _set_eflags:
 	MOV eax, [esp+4]
 	PUSH eax
 	POPFD
+	RET
+
+_get_eip:
+	MOV eax, [esp]
 	RET

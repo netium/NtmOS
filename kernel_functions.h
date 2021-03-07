@@ -16,5 +16,7 @@ int _io_in32(int port);
 int _get_eflags();
 void _set_eflags(int eflags);
 
+int _get_eip();
+
 #endif
 
