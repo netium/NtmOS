@@ -33,7 +33,7 @@ ntmio.sys.o: ntmio.sys.nas
 
 kernel.sys: kernel.o kernel_functions.o k_vga.o gui.o
 	$(LD) kernel.o kernel_functions.o gui.o k_vga.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
-	objcopy -O binary -j.text -j.data kernel.sys.tmp kernel.sys
+	objcopy -O binary -j.text -j.data -j.bss -j.rodata kernel.sys.tmp kernel.sys
 
 testapp: hlt.o boot_main.o test_app.c
 	$(CC) $(CCFLAGS) test_app.c hlt.o boot_main.o -o testapp

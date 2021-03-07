@@ -2,6 +2,13 @@
 #include "k_vga.h"
 #include "font8x8_basic.h"
 
+    unsigned char fontA[8] = {
+        0x00, 0x18, 0x18, 0x18, 0x18, 0x24, 0x24, 0x24
+    };
+
+
+void drawfont8(screen_info_t *pscreen, int x, int y, char c, unsigned char *font);
+
 void render_ui() {
     screen_info_t screen_info;
     screen_info.res_width = 320;
@@ -32,24 +39,16 @@ void render_ui() {
     boxfill8(screen_info.pvram, screen_info.res_width, COL8_FFFFFF, screen_info.res_width -3 , screen_info.res_height - 24, screen_info.res_width - 3, screen_info.res_height -3 );
 
     drawstring(&screen_info, 1, 1, "Hello, world!");
+
 }
 
-void drawstring(screen_info_t *pscreen, int line, int col, char *str) {
-    if (pscreen == 0)
-        return;
-
-    int nline = pscreen->res_height / pscreen->font_height;
-    int ncol = pscreen->res_width / pscreen->font_width;
-
-    if (line < 0 || line >= nline) return;
-    if (col < 0 || col >= ncol) return;
-
-    int x = col * pscreen->font_width;
-    int y = line * pscreen->font_height;
+void drawstring(screen_info_t *pscreen, int x, int y, char *str) {
+    if (pscreen == 0) return;
 
     int ch;
+
     while ((ch = *str++) != 0) {
-        drawchar(pscreen, x, y, ch, COL8_FFFFFF);
+        drawfont8(pscreen, x, y, COL8_FFFFFF, font8x8_basic[ch]);
         x += pscreen->font_width;
     }
 }
@@ -91,4 +90,47 @@ void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, i
             vram[y * xsize + x] = c;
         }
     }
+}
+
+void drawpointer(screen_info_t *pscreen, int x, int y, void *p) {
+    drawuint32(pscreen, x, y, (unsigned int)p);
+}
+
+void drawuint32(screen_info_t *pscreen, int x, int y, unsigned int n) {
+    if (n == 0) drawfont8(pscreen, x, y, COL8_FFFFFF, font8x8_basic['0']);
+
+    while (n != 0) {
+        int digit = n % 10;
+        n = n / 10;
+        drawfont8 (pscreen, x, y, COL8_FFFFFF, font8x8_basic['0' + digit]);
+        x += 8;
+    }
+}
+void drawfont8(screen_info_t *pscreen, int x, int y, char c, unsigned char *font) {
+    int i;
+    unsigned char *p;
+    char d;
+    for (i = 0; i < 8; i++) {
+        p = pscreen->pvram + (y + i) * pscreen->res_width + x;
+        d = font[i];
+        /*
+        p[0] = ((d & 0x01 != 0) ? c : COL8_000000);
+        p[1] = ((d & 0x02 != 0) ? c : COL8_000000);
+        p[2] = ((d & 0x04 != 0) ? c : COL8_000000);
+        p[3] = ((d & 0x08 != 0) ? c : COL8_000000);
+        p[4] = ((d & 0x10 != 0) ? c : COL8_000000);
+        p[5] = ((d & 0x20 != 0) ? c : COL8_000000);
+        p[6] = ((d & 0x40 != 0) ? c : COL8_000000);
+        p[7] = ((d & 0x80 != 0) ? c : COL8_000000);
+        */
+
+        if ((d & 0x80) != 0) p[7] = c;
+        if ((d & 0x40) != 0) p[6] = c;
+        if ((d & 0x20) != 0) p[5] = c;
+        if ((d & 0x10) != 0) p[4] = c;
+        if ((d & 0x08) != 0) p[3] = c;
+        if ((d & 0x04) != 0) p[2] = c;
+        if ((d & 0x02) != 0) p[1] = c;
+        if ((d & 0x01) != 0) p[0] = c;
+    } 
 }
