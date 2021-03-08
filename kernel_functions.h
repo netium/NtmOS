@@ -2,6 +2,8 @@
 
 #define _KERNEL_FUNCTIONS_H_
 
+#include "kernel_types.h"
+
 void _io_hlt(void);
 void _io_cli(void);
 
@@ -16,7 +18,14 @@ int _io_in32(int port);
 int _get_eflags();
 void _set_eflags(int eflags);
 
+void _load_idt(idtr_t idtr);
+void _load_gdt(gdtr_t gdtr);
+
 int _get_eip();
+
+void _disable_interrupt();
+
+void _enable_interrupt();
 
 #endif
 

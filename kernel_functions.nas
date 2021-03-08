@@ -9,6 +9,10 @@ GLOBAL _io_in16
 GLOBAL _io_in32
 GLOBAL _get_eflags
 GLOBAL _set_eflags
+GLOBAL _load_gdt
+GLOBAL _load_idt
+GLOBAL _disable_interrupt
+GLOBAL _enable_interrupt
 
 GLOBAL _get_eip
 
@@ -71,4 +75,20 @@ _set_eflags:
 
 _get_eip:
 	MOV eax, [esp]
+	RET
+
+_load_gdt:
+	LGDT [esp+4]
+	RET
+
+_load_idt:
+	LIDT [esp+4]
+	RET
+
+_disable_interrupt:
+	CLI
+	RET
+
+_enable_interrupt:
+	STI
 	RET
