@@ -14,6 +14,10 @@ void kernel_main(void) {
 	initial_gdt();
 	initial_idt();
 
+
+	// Initialize the Programmable Interrupt Controller
+	initial_pic();
+
 	render_ui();
 
 	while (1) _io_hlt();

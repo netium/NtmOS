@@ -2,7 +2,7 @@
 #define _KERNEL_TYPES_H_
 #include "kernel_types.h"
 
-#pragma pack(2)
+#pragma pack(1)
 typedef union {
     unsigned int dwords[2];
     struct {
@@ -37,7 +37,7 @@ typedef union {
     } fields;
 } gdt_entry_t;
 
-#pragma pack(2)
+#pragma pack(1)
 typedef union {
     unsigned int dwords[2];
     struct {
