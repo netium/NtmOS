@@ -23,6 +23,11 @@ typedef union {
         } access;
         struct {
             int limit_high:4;
+            int flag_resv1:1;
+            int flag_resv2:1;
+            int sz:1;
+            int gr:1
+            /*
             union {
                 int flags:4;
                 struct {
@@ -32,6 +37,7 @@ typedef union {
                     int gr:1;
                 };
             };
+            */
         };
         unsigned char base_high_byte;
     } fields;
@@ -57,13 +63,13 @@ typedef union {
     } fields;
 } idt_entry_t;
 
-#pragma pack(2)
+#pragma pack(1)
 typedef struct {
     unsigned short n_entries;
     idt_entry_t * p_start_addr;
 } idtr_t;
 
-#pragma pack(2)
+#pragma pack(1)
 typedef struct {
     unsigned short n_entries;
     gdt_entry_t * p_start_addr;

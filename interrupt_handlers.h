@@ -12,5 +12,6 @@ typedef struct
 
 void int21h_handler(interrupt_frame_t *frame);
 void int2ch_handler(interrupt_frame_t *frame);
+void int27h_handler(interrupt_frame_t *frame);
 
 #endif
