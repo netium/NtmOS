@@ -8,6 +8,8 @@
 
 static screen_info_t g_screen_info;
 
+static int cx, cy;
+
 void init_screen() {
     g_screen_info.res_width = 320;
     g_screen_info.res_height = 200;
@@ -15,7 +17,10 @@ void init_screen() {
     g_screen_info.pcharfonts = (unsigned char *)font8x8_basic;
     g_screen_info.font_width = 8;
     g_screen_info.font_height = 8;
-    
+
+    cx = 0;
+    cy = 0;
+
     init_palette();
 }
 
@@ -43,8 +48,6 @@ void render_ui() {
     boxfill8(g_screen_info.pvram, g_screen_info.res_width, COL8_FFFFFF, g_screen_info.res_width -3 , g_screen_info.res_height - 24, g_screen_info.res_width - 3, g_screen_info.res_height -3 );
 
     drawstring(&g_screen_info, 0, 0, "NtmOS v0.0.0.1");
-    drawuint32(&g_screen_info, 0, 8, sizeof(gdt_entry_t));
-
 }
 
 void drawstring(screen_info_t *pscreen, int x, int y, char *str) {
@@ -97,11 +100,13 @@ void boxfill8(unsigned char *vram, int xsize, unsigned char c, int x0, int y0, i
     }
 }
 
-void drawpointer(screen_info_t *pscreen, int x, int y, void *p) {
-    drawuint32(pscreen, x, y, (unsigned int)p);
+void drawpointer(int x, int y, void *p) {
+    drawuint32(x, y, (unsigned int)p);
 }
 
-void drawuint32(screen_info_t *pscreen, int x, int y, unsigned int n) {
+void drawuint32(int x, int y, unsigned int n) {
+    screen_info_t *pscreen = &g_screen_info;
+
     if (n == 0) drawfont8(pscreen, x, y, COL8_FFFFFF, font8x8_basic['0']);
 
     while (n != 0) {
@@ -141,4 +146,8 @@ void boxfill8_ds(int xsize, unsigned char c, int x0, int y0, int x1, int y1) {
             vram[y * xsize + x] = c;
         }
     }
+}
+
+void writechar_dirty(char c) {
+    screen_info_t *pscreen = &g_screen_info;
 }

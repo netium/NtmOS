@@ -12,7 +12,19 @@
 #include "gui.h"
 
 __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
-     boxfill8_ds(320, COL8_FF0000, 30, 30, 50, 50);
+     unsigned char status;
+     char keycode;
+
+     _io_out8(0x20, 0x20);  // Write EOI (End of Interrupt) to PIC port to acknowledge
+
+    status = _io_in8(0x64);
+    drawuint32(24, 8, status);
+
+    if (status & 0x01) {    // If buffer is not empty
+        keycode = _io_in8(60);
+        if (keycode < 0) return;
+        drawuint32(0, 24, keycode);
+    }
 }
 
 
