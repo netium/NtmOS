@@ -124,14 +124,14 @@ void drawfont8(screen_info_t *pscreen, int x, int y, char c, unsigned char *font
         p = pscreen->pvram + (y + i) * pscreen->res_width + x;
         d = font[i];
 
-        if ((d & 0x80) != 0) p[7] = c;
-        if ((d & 0x40) != 0) p[6] = c;
-        if ((d & 0x20) != 0) p[5] = c;
-        if ((d & 0x10) != 0) p[4] = c;
-        if ((d & 0x08) != 0) p[3] = c;
-        if ((d & 0x04) != 0) p[2] = c;
-        if ((d & 0x02) != 0) p[1] = c;
-        if ((d & 0x01) != 0) p[0] = c;
+        if ((d & 0x80) != 0) p[7] = c; else p[7] = COL8_000000;
+        if ((d & 0x40) != 0) p[6] = c; else p[6] = COL8_000000;
+        if ((d & 0x20) != 0) p[5] = c; else p[5] = COL8_000000;
+        if ((d & 0x10) != 0) p[4] = c; else p[4] = COL8_000000;
+        if ((d & 0x08) != 0) p[3] = c; else p[3] = COL8_000000;
+        if ((d & 0x04) != 0) p[2] = c; else p[2] = COL8_000000;
+        if ((d & 0x02) != 0) p[1] = c; else p[1] = COL8_000000;
+        if ((d & 0x01) != 0) p[0] = c; else p[0] = COL8_000000;
     } 
 }
 

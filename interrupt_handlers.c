@@ -15,16 +15,21 @@ __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
      unsigned char status;
      char keycode;
 
-     _io_out8(0x20, 0x20);  // Write EOI (End of Interrupt) to PIC port to acknowledge
+     _io_out8(0x20, 0x61);  // Write EOI (End of Interrupt) to PIC port to acknowledge
 
+    unsigned char data = _io_in8(0x60);
+    drawuint32(24, 8, data);
+
+    /*
     status = _io_in8(0x64);
     drawuint32(24, 8, status);
 
     if (status & 0x01) {    // If buffer is not empty
-        keycode = _io_in8(60);
+        keycode = _io_in8(0x60);
         if (keycode < 0) return;
         drawuint32(0, 24, keycode);
     }
+    */
 }
 
 
