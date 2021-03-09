@@ -26,7 +26,7 @@ typedef union {
             int flag_resv1:1;
             int flag_resv2:1;
             int sz:1;
-            int gr:1
+            int gr:1;
             /*
             union {
                 int flags:4;

@@ -37,7 +37,7 @@ void initial_gdt() {
     }
 
     gdtr_t gdtr;
-    gdtr.n_entries = N_GDT_ENTRIES << 3 - 1;
+    gdtr.n_entries = (N_GDT_ENTRIES << 3) - 1;
     gdtr.p_start_addr = GDT_TABLE_START_ADDR;
     _load_gdt(gdtr);
     _set_eflags(eflags);
@@ -113,7 +113,11 @@ void initial_pic() {
 }
 
 void initial_keyboard() {
-    _io_out8(0x21, 0xFD);
+    _io_out8(0x21, 0xfd);
+    _io_out8(0xa1, 0xff);
+
+    _io_out8(PIC0_IMR, 0xf9);
+    _io_out8(PIC1_IMR, 0xef);
 }
 
 void set_interrupt(int interrupt_id, int code_seg_selector, void *p_handler, int gate_type, int priv_level, int enabled) {
