@@ -6,7 +6,7 @@ CC = gcc
 DD = dd
 LD = ld
 
-CCFLAGS = -Wall -m32
+CCFLAGS = -Wall -m32 -nolibc -nostdlib -nodefaultlibs -fno-pie -mmanual-endbr -fcf-protection=branch
 
 # EDIMG = ./tools/edimg.exe
 
@@ -34,27 +34,30 @@ ntmio.sys: ntmio.sys.o
 ntmio.sys.o: ntmio.sys.nas
 	$(ASM) -fbin ntmio.sys.nas -o ntmio.sys.o
 
-kernel.sys: kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o
-	$(LD) kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
+kernel.sys: kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o interrupt_handlers.o
+	$(LD) kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o interrupt_handlers.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
 	objcopy -O binary -j.text -j.data -j.bss -j.rodata kernel.sys.tmp kernel.sys
 
 testapp: hlt.o boot_main.o test_app.c
 	$(CC) $(CCFLAGS) test_app.c hlt.o boot_main.o -o testapp
 
 kernel.o: kernel.c 
-	$(CC) $(CCFLAGS) -nolibc -nostdlib -nodefaultlibs -fno-pie kernel.c -mmanual-endbr -fcf-protection=branch -c -o kernel.o
+	$(CC) $(CCFLAGS) kernel.c -c -o kernel.o
 
 kernel_inits.o: kernel_inits.c
-	$(CC) $(CCFLAGS) -nolibc -nostdlib -nodefaultlibs -fno-pie kernel_inits.c -mmanual-endbr -fcf-protection=branch -c -o kernel_inits.o
+	$(CC) $(CCFLAGS) kernel_inits.c -c -o kernel_inits.o
 
 kernel_functions.o: kernel_functions.nas
 	$(ASM) kernel_functions.nas -felf32 -o kernel_functions.o
 
 gui.o: gui.c gui.h
-	$(CC) $(CCFLAGS) -nolibc -nostdlib -nodefaultlibs -fno-pie gui.c -mmanual-endbr -fcf-protection=branch -c -o gui.o
+	$(CC) $(CCFLAGS) gui.c -c -o gui.o
 
 k_vga.o: k_vga.c k_vga.h
-	$(CC) $(CCFLAGS) -nolibc -nostdlib -nodefaultlibs -fno-pie k_vga.c -mmanual-endbr -fcf-protection=branch -c -o k_vga.o
+	$(CC) $(CCFLAGS) k_vga.c -c -o k_vga.o
+
+interrupt_handlers.o: interrupt_handlers.c interrupt_handlers.h
+	$(CC) $(CCFLAGS) -mgeneral-regs-only -mno-red-zone interrupt_handlers.c -c -o interrupt_handlers.o
 
 clean:
 	rm *.sys *.img *.o testapp

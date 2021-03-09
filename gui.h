@@ -27,10 +27,17 @@ typedef struct {
     int font_height;
 } screen_info_t;
 
+void init_screen();
+
 void render_ui();
 void drawstring(screen_info_t *pscreen, int x, int y, char *str);
 void drawchar(screen_info_t *pscreen, int x, int y, char ch, int palatte_id);
 void boxfill8(unsigned char *vram, int xszie, unsigned char c, int x0, int y0, int x1, int y1);
-void drawuint32(screen_info_t *pscreen, int x, int y, unsigned int n);
-void drawpointer(screen_info_t *pscreen, int x, int y, void *p);
+void drawuint32(int x, int y, unsigned int n);
+void drawpointer(int x, int y, void *p);
+
+void boxfill8_ds(int xsize, unsigned char c, int x0, int y0, int x1, int y1);
+
+void writechar_dirty(char c);
+
 #endif
