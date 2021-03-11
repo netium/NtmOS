@@ -34,7 +34,7 @@ ntmio.sys: ntmio.sys.o
 ntmio.sys.o: ntmio.sys.nas
 	$(ASM) -fbin ntmio.sys.nas -o ntmio.sys.o
 
-kernel.sys: kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o interrupt_handlers.o
+kernel.sys: kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o interrupt_handlers.o kstring.o
 	$(LD) kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o interrupt_handlers.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
 	objcopy -O binary -j.text -j.data -j.bss -j.rodata kernel.sys.tmp kernel.sys
 
@@ -58,6 +58,9 @@ k_vga.o: k_vga.c k_vga.h
 
 interrupt_handlers.o: interrupt_handlers.c interrupt_handlers.h
 	$(CC) $(CCFLAGS) -mgeneral-regs-only -mno-red-zone interrupt_handlers.c -c -o interrupt_handlers.o
+
+kstring.o: kstring.h kstring.c
+	$(CC) $(CCFLAGS) kstring.c -c -o kstring.o
 
 clean:
 	rm *.sys *.img *.o testapp
