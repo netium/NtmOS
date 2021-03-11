@@ -145,3 +145,35 @@ void set_interrupt(int interrupt_id, int code_seg_selector, void *p_handler, int
 
     _set_eflags(eflags);
 }
+
+void initial_interrupt_event_queue() {
+    k_memset(&g_event_queue, 0, sizeof(g_event_queue));
+}
+
+simple_interrupt_event_node_t * enqueue_event_queue() {
+    if (g_event_queue.full)
+        return 0;
+
+    simple_interrupt_event_node_t *tail = g_event_queue.tail;
+    g_event_queue.tail++;
+    if (g_event_queue.tail >= (g_event_queue.nodes + (sizeof(g_event_queue.nodes) / sizeof (g_event_queue.nodes[0]))))
+        g_event_queue.tail = g_event_queue.nodes;
+
+    if (g_event_queue.head == g_event_queue.tail)
+        g_event_queue.full = 1;
+
+    return tail;
+}
+
+simple_interrupt_event_node_t * dequeue_event_queue() {
+    if ((g_event_queue.head == g_event_queue.tail) && (g_event_queue.full == 0)) 
+        return 0; // means the queue is empty
+
+    simple_interrupt_event_node_t * head = g_event_queue.head;
+    g_event_queue.head++;
+    if (g_event_queue.head >= (g_event_queue.nodes + (sizeof(g_event_queue.nodes) / sizeof(g_event_queue.nodes[0]))))
+        g_event_queue.head = g_event_queue.nodes;
+    g_event_queue.full = 0;
+
+    return head;
+}

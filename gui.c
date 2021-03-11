@@ -5,6 +5,7 @@
 #include "k_vga.h"
 #include "font8x8_basic.h"
 #include "kernel_inits.h"
+#include "kstring.h"
 
 static screen_info_t g_screen_info;
 

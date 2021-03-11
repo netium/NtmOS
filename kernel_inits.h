@@ -18,6 +18,24 @@
 #define PIC1_ICW3		0x00a1
 #define PIC1_ICW4		0x00a1
 
+typedef struct {
+    int type;
+    union {
+        int data;
+    };
+} simple_interrupt_event_node_t;
+
+typedef struct {
+    simple_interrupt_event_node_t * head;
+    simple_interrupt_event_node_t * tail;
+    int full;
+    simple_interrupt_event_node_t nodes[256];
+} simple_interrupt_event_queue_t; 
+
+simple_interrupt_event_queue_t g_event_queue;
+
+void initial_interrupt_event_queue();
+
 int mem_test();
 void kernel_relocate();
 void initial_gdt();
@@ -29,4 +47,6 @@ void initial_keyboard();
 
 void set_interrupt(int interrupt_id, int code_seg_selector, void *p_handler, int gate_type, int priv_level, int enabled);
 
+simple_interrupt_event_node_t * enqueue_event_queue();
+simple_interrupt_event_node_t * dequeue_event_queue();
 #endif
