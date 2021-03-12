@@ -11,6 +11,8 @@ static screen_info_t g_screen_info;
 
 static int cx, cy;
 
+static int mouse_x, mouse_y;
+
 void init_screen() {
     g_screen_info.res_width = 320;
     g_screen_info.res_height = 200;
@@ -151,4 +153,18 @@ void boxfill8_ds(int xsize, unsigned char c, int x0, int y0, int x1, int y1) {
 
 void writechar_dirty(char c) {
     screen_info_t *pscreen = &g_screen_info;
+}
+
+void move_mouse(int dx, int dy) {
+    drawuint32(56, 56, 8);
+
+    mouse_x += dx;
+    mouse_y += dy;
+
+    if (mouse_x < 0) mouse_x = 0;
+    if (mouse_x > g_screen_info.res_width) mouse_x = g_screen_info.res_width;
+    if (mouse_y < 0) mouse_y = 0;
+    if (mouse_y > g_screen_info.res_height) mouse_y = g_screen_info.res_height;
+
+    boxfill8(g_screen_info.pvram, g_screen_info.res_width, COL8_0000FF, mouse_x, mouse_y, mouse_x + 4, mouse_y + 4);
 }
