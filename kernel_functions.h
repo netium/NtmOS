@@ -27,5 +27,7 @@ void _disable_interrupt();
 
 void _enable_interrupt();
 
+void _enable_interrupt_and_halt();
+
 #endif
 

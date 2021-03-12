@@ -32,8 +32,6 @@ typedef struct {
     simple_interrupt_event_node_t nodes[256];
 } simple_interrupt_event_queue_t; 
 
-simple_interrupt_event_queue_t g_event_queue;
-
 void initial_interrupt_event_queue();
 
 int mem_test();

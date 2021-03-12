@@ -18,18 +18,12 @@ __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
      _io_out8(0x20, 0x61);  // Write EOI (End of Interrupt) to PIC port to acknowledge
 
     unsigned char data = _io_in8(0x60);
-    drawuint32(24, 8, data);
 
-    /*
-    status = _io_in8(0x64);
-    drawuint32(24, 8, status);
-
-    if (status & 0x01) {    // If buffer is not empty
-        keycode = _io_in8(0x60);
-        if (keycode < 0) return;
-        drawuint32(0, 24, keycode);
+    simple_interrupt_event_node_t * node = enqueue_event_queue();
+    if (node != 0) {
+        node->type = 0;
+        node->data = data;
     }
-    */
 }
 
 

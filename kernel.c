@@ -13,6 +13,8 @@ void kernel_main(void) {
 
 	init_screen();
 
+	initial_interrupt_event_queue();
+
 	initial_gdt();
 	initial_idt();
 
@@ -25,16 +27,24 @@ void kernel_main(void) {
 
 	render_ui();
 
-	/*
-	while (1) {
-		int key = _io_in8()
-	}
-	*/
-
 	// Done remove this statement, as it will casue the kernel main fucntion to return, 
 	// and as this function is the entry point for kernel execution file, it will make let the function return back to an random address
 	// and cause the virtual machine to complain about the crash.
-	while (1) _io_hlt();
+	while (1) {
+		_io_cli();	// Temporarily disable the interrupt, to prevent system from re-entry the manipulation of the event queue
+		simple_interrupt_event_node_t *node = dequeue_event_queue();
+		if (node == 0) {
+			_enable_interrupt_and_halt();
+		}
+		else {
+			if (node->type == 0) {
+				drawuint32(24, 8, node->data);
+			}
+			_enable_interrupt();
+		}
+	}
+
+	while(1) _io_hlt();
 
 	return;
 }

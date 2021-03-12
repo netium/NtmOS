@@ -2,11 +2,14 @@
 #include "kernel_types.h"
 #include "kernel_functions.h"
 #include "interrupt_handlers.h"
+#include "kstring.h"
 
 #define IDT_TABLE_START_ADDR  ((void *)0x0)
 #define GDT_TABLE_START_ADDR  ((void *)0x800)
 #define N_GDT_ENTRIES 24
 #define N_IDT_ENTRIES 256
+
+static simple_interrupt_event_queue_t g_event_queue;
 
 int mem_test() {
     return 0;
@@ -147,7 +150,9 @@ void set_interrupt(int interrupt_id, int code_seg_selector, void *p_handler, int
 }
 
 void initial_interrupt_event_queue() {
-    k_memset(&g_event_queue, 0, sizeof(g_event_queue));
+    g_event_queue.head = g_event_queue.nodes;
+    g_event_queue.tail = g_event_queue.nodes;
+    g_event_queue.full = 0;
 }
 
 simple_interrupt_event_node_t * enqueue_event_queue() {

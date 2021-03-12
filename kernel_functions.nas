@@ -1,6 +1,7 @@
 ; For C calling conventions, refer to: https://www.csee.umbc.edu/~chang/cs313.s02/stack.shtml
 
 GLOBAL _io_hlt
+GLOBAL _io_cli
 GLOBAL _io_out8
 GLOBAL _io_out16
 GLOBAL _io_out32
@@ -15,6 +16,8 @@ GLOBAL _disable_interrupt
 GLOBAL _enable_interrupt
 
 GLOBAL _get_eip
+
+GLOBAL _enable_interrupt_and_halt
 
 section .text
 
@@ -91,4 +94,9 @@ _disable_interrupt:
 
 _enable_interrupt:
 	STI
+	RET
+
+_enable_interrupt_and_halt:
+	STI
+	HLT
 	RET

@@ -29,21 +29,6 @@ typedef struct {
     int font_height;
 } screen_info_t;
 
-typedef struct {
-    int type;
-    union {
-        int data;
-    };
-} simple_interrupt_event_node_t;
-
-typedef struct {
-    simple_interrupt_event_node_t * head;
-    simple_interrupt_event_node_t * tail;
-    simple_interrupt_event_node_t nodes[257];
-} simple_interrupt_event_queue_t; 
-
-simple_interrupt_event_queue_t g_event_queue;
-
 void initial_interrupt_event_queue();
 
 void init_screen();
