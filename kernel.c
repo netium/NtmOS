@@ -27,6 +27,8 @@ void kernel_main(void) {
 
 	render_ui();
 
+	initial_mouse();
+
 	// Done remove this statement, as it will casue the kernel main fucntion to return, 
 	// and as this function is the entry point for kernel execution file, it will make let the function return back to an random address
 	// and cause the virtual machine to complain about the crash.
@@ -38,7 +40,10 @@ void kernel_main(void) {
 		}
 		else {
 			if (node->type == 0) {
-				drawuint32(24, 8, node->data);
+				drawuint32(24, 8, node->keyboard_event.data);
+			}
+			else if (node->type == 1) {
+				process_mouse_event(&(node->mouse_event));
 			}
 			_enable_interrupt();
 		}
@@ -48,3 +53,4 @@ void kernel_main(void) {
 
 	return;
 }
+

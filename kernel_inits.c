@@ -3,6 +3,7 @@
 #include "kernel_functions.h"
 #include "interrupt_handlers.h"
 #include "kstring.h"
+#include "gui.h"
 
 #define IDT_TABLE_START_ADDR  ((void *)0x0)
 #define GDT_TABLE_START_ADDR  ((void *)0x800)
@@ -10,6 +11,13 @@
 #define N_IDT_ENTRIES 256
 
 static simple_interrupt_event_queue_t g_event_queue;
+
+static unsigned char mouse_buf[3];
+static int mouse_dx = 0, mouse_dy = 0, mouse_button = 0;
+
+static int raw_mouse_state_machine = 0;
+
+void wait_keyboard_send_ready(void);
 
 int mem_test() {
     return 0;
@@ -73,7 +81,6 @@ void initial_idt() {
 }
 
 void initial_pic() {
-    /*
     _io_out8(PIC0_IMR, 0xff);
     _io_out8(PIC1_IMR, 0xff);
     _io_out8(PIC0_ICW1, 0x11);
@@ -86,41 +93,63 @@ void initial_pic() {
     _io_out8(PIC1_ICW4, 0x01);
     _io_out8(PIC0_IMR, 0xfb);
     _io_out8(PIC1_IMR, 0xff);
-    */
 
    // Refer to: https://arjunsreedharan.org/post/99370248137/kernels-201-lets-write-a-kernel-with-keyboard
 	/* ICW1 - begin initialization */
-    _io_out8(0x20 , 0x11);
-	_io_out8(0xA0 , 0x11);
+    // _io_out8(0x20 , 0x11);
+	// _io_out8(0xA0 , 0x11);
 
 	/* ICW2 - remap offset address of IDT */
 	/*
 	* In x86 protected mode, we have to remap the PICs beyond 0x20 because
 	* Intel have designated the first 32 interrupts as "reserved" for cpu exceptions
 	*/
-	_io_out8(0x21 , 0x20);
-	_io_out8(0xA1 , 0x28);
+	// _io_out8(0x21 , 0x20);
+	// _io_out8(0xA1 , 0x28);
 
 	/* ICW3 - setup cascading */
-	_io_out8(0x21 , 0x00);  
-	_io_out8(0xA1 , 0x00);  
+	// _io_out8(0x21 , 0x00);  
+	// _io_out8(0xA1 , 0x00);  
 
 	/* ICW4 - environment info */
-	_io_out8(0x21 , 0x01);
-	_io_out8(0xA1 , 0x01);
+	// _io_out8(0x21 , 0x01);
+	// _io_out8(0xA1 , 0x01);
 	/* Initialization finished */
 
 	/* mask interrupts */
-	_io_out8(0x21 , 0xff);
-	_io_out8(0xA1 , 0xff);
+	// _io_out8(0x21 , 0xff);
+	// _io_out8(0xA1 , 0xff);
 }
 
 void initial_keyboard() {
+    /*
+    wait_keyboard_send_ready();
     _io_out8(0x21, 0xfd);
+    wait_keyboard_send_ready();
     _io_out8(0xa1, 0xff);
 
+    wait_keyboard_send_ready();
     _io_out8(PIC0_IMR, 0xf9);
+    wait_keyboard_send_ready();
     _io_out8(PIC1_IMR, 0xef);
+    */
+
+   _io_out8(PIC0_IMR, 0xf9);
+   _io_out8(PIC1_IMR, 0xef);
+
+   wait_keyboard_send_ready();
+   _io_out8(PORT_KB_CMD, 0x60);
+   wait_keyboard_send_ready();
+   _io_out8(PORT_KB_DATA, 0x47);
+
+}
+
+void initial_mouse() {
+    wait_keyboard_send_ready();
+    _io_out8(PORT_KB_CMD, 0xd4);
+
+    wait_keyboard_send_ready();
+    _io_out8(PORT_KB_DATA, 0xf4);
 }
 
 void set_interrupt(int interrupt_id, int code_seg_selector, void *p_handler, int gate_type, int priv_level, int enabled) {
@@ -181,4 +210,52 @@ simple_interrupt_event_node_t * dequeue_event_queue() {
     g_event_queue.full = 0;
 
     return head;
+}
+
+void wait_keyboard_send_ready(void) {
+    while (1) {
+        if ((_io_in8(PORT_KB_STATUS) & 0x02) == 0) {
+            break;
+        }
+    }
+}
+
+void process_keyboard_event(keyboard_event_t * process_keyboard_event) {
+
+}
+
+void process_mouse_event(mouse_event_t * p_mouse_event) {
+    int data = p_mouse_event->data;
+    switch (raw_mouse_state_machine) {
+        case 0:
+            if (0xfa == data) raw_mouse_state_machine = 1;
+            break;
+        case 1:
+            if ((data & 0xc8) == 0x08) {
+                mouse_buf[0] = data;
+                raw_mouse_state_machine = 2;
+            }
+            break;
+        case 2:
+            mouse_buf[1] = data;
+            raw_mouse_state_machine = 3;
+            break;
+        case 3:
+            mouse_buf[2] = data;
+            raw_mouse_state_machine = 1;
+            mouse_button = mouse_buf[0] & 0x07;
+            mouse_dx = mouse_buf[1];
+            mouse_dy = mouse_buf[2];
+            if ((mouse_buf[0] & 0x10) != 0) {
+                mouse_dx |= 0xffffff00;
+            }
+            if ((mouse_buf[0] & 0x20) != 0) {
+                mouse_dy |= 0xffffff00;
+            }
+            mouse_dy = - mouse_dy;
+            move_mouse(mouse_dx, mouse_dy);
+            break;
+        default:
+            break;
+    }
 }

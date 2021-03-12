@@ -22,13 +22,25 @@ __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
     simple_interrupt_event_node_t * node = enqueue_event_queue();
     if (node != 0) {
         node->type = 0;
-        node->data = data;
+        node->keyboard_event.data = data;
     }
 }
 
 
 __attribute__ ((interrupt)) void int2ch_handler(interrupt_frame_t *frame) {
-    boxfill8_ds(320, COL8_00FF00, 30, 30, 50, 50);
+    unsigned char data;
+
+    _io_out8(PIC1_OCW2, 0x64);
+
+    _io_out8(PIC0_OCW2, 0x62);
+
+    data = _io_in8(0x60);
+
+    simple_interrupt_event_node_t * node = enqueue_event_queue();
+    if (node != 0) {
+        node->type = 1;
+        node->mouse_event.data = data;
+    }
 }
 
 __attribute__ ((interrupt)) void int27h_handler(interrupt_frame_t *frame) {
