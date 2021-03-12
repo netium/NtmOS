@@ -34,8 +34,8 @@ ntmio.sys: ntmio.sys.o
 ntmio.sys.o: ntmio.sys.nas
 	$(ASM) -fbin ntmio.sys.nas -o ntmio.sys.o
 
-kernel.sys: kstring.o kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o interrupt_handlers.o
-	$(LD) kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o interrupt_handlers.o kstring.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
+kernel.sys: kstring.o kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o interrupt_handlers.o k_heap.o
+	$(LD) kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o interrupt_handlers.o kstring.o k_heap.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
 	objcopy -O binary -j.text -j.data -j.bss -j.rodata kernel.sys.tmp kernel.sys
 
 testapp: hlt.o boot_main.o test_app.c
@@ -44,7 +44,10 @@ testapp: hlt.o boot_main.o test_app.c
 kernel.o: kernel.c 
 	$(CC) $(CCFLAGS) kernel.c -c -o kernel.o
 
-kernel_inits.o: kernel_inits.c
+k_heap.o: k_heap.c k_heap.h
+	$(CC) $(CCFLAGS) k_heap.c -c -o k_heap.o
+
+kernel_inits.o: kernel_inits.c kernel_inits.h
 	$(CC) $(CCFLAGS) kernel_inits.c -c -o kernel_inits.o
 
 kernel_functions.o: kernel_functions.nas
