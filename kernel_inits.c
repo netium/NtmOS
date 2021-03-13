@@ -4,6 +4,7 @@
 #include "interrupt_handlers.h"
 #include "kstring.h"
 #include "gui.h"
+#include "k_heap.h"
 
 #define IDT_TABLE_START_ADDR  ((void *)0x0)
 #define GDT_TABLE_START_ADDR  ((void *)0x800)
@@ -184,32 +185,32 @@ void initial_interrupt_event_queue() {
     g_event_queue.full = 0;
 }
 
-simple_interrupt_event_node_t * enqueue_event_queue() {
+int enqueue_event_queue(simple_interrupt_event_node_t *p_node) {
     if (g_event_queue.full)
-        return 0;
+        return -1;
 
-    simple_interrupt_event_node_t *tail = g_event_queue.tail;
-    g_event_queue.tail++;
-    if (g_event_queue.tail >= (g_event_queue.nodes + (sizeof(g_event_queue.nodes) / sizeof (g_event_queue.nodes[0]))))
-        g_event_queue.tail = g_event_queue.nodes;
+    g_event_queue.nodes[g_event_queue.tail++] = p_node;
+
+    if (g_event_queue.tail >= (sizeof(g_event_queue.nodes) / sizeof (g_event_queue.nodes[0])))
+        g_event_queue.tail = 0;
 
     if (g_event_queue.head == g_event_queue.tail)
         g_event_queue.full = 1;
 
-    return tail;
+    return 0;
 }
 
 simple_interrupt_event_node_t * dequeue_event_queue() {
     if ((g_event_queue.head == g_event_queue.tail) && (g_event_queue.full == 0)) 
         return 0; // means the queue is empty
 
-    simple_interrupt_event_node_t * head = g_event_queue.head;
-    g_event_queue.head++;
-    if (g_event_queue.head >= (g_event_queue.nodes + (sizeof(g_event_queue.nodes) / sizeof(g_event_queue.nodes[0]))))
-        g_event_queue.head = g_event_queue.nodes;
+    simple_interrupt_event_node_t * node = g_event_queue.nodes[g_event_queue.head++];
+
+    if (g_event_queue.head >= (sizeof(g_event_queue.nodes) / sizeof(g_event_queue.nodes[0])))
+        g_event_queue.head = 0;
     g_event_queue.full = 0;
 
-    return head;
+    return node;
 }
 
 void wait_keyboard_send_ready(void) {

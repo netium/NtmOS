@@ -8,6 +8,7 @@
 #include "interrupt_handlers.h"
 #include "kernel_functions.h"
 #include "kernel_inits.h"
+#include "k_heap.h"
 
 #include "gui.h"
 
@@ -19,11 +20,13 @@ __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
 
     unsigned char data = _io_in8(0x60);
 
-    simple_interrupt_event_node_t * node = enqueue_event_queue();
-    if (node != 0) {
-        node->type = 0;
-        node->keyboard_event.data = data;
-    }
+    simple_interrupt_event_node_t *p_node = k_malloc(sizeof (simple_interrupt_event_node_t));
+
+    if (p_node == 0) return;
+
+    p_node->type = 0, p_node->keyboard_event.data = data;
+
+    int ret = enqueue_event_queue(p_node);
 }
 
 
@@ -36,11 +39,13 @@ __attribute__ ((interrupt)) void int2ch_handler(interrupt_frame_t *frame) {
 
     data = _io_in8(0x60);
 
-    simple_interrupt_event_node_t * node = enqueue_event_queue();
-    if (node != 0) {
-        node->type = 1;
-        node->mouse_event.data = data;
-    }
+    simple_interrupt_event_node_t *p_node = k_malloc(sizeof (simple_interrupt_event_node_t));
+
+    if (p_node == 0) return;
+
+    p_node->type = 1, p_node->mouse_event.data = data;
+
+    int ret = enqueue_event_queue(p_node);
 }
 
 __attribute__ ((interrupt)) void int27h_handler(interrupt_frame_t *frame) {

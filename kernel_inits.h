@@ -39,10 +39,13 @@ typedef struct {
 } simple_interrupt_event_node_t;
 
 typedef struct {
-    simple_interrupt_event_node_t * head;
-    simple_interrupt_event_node_t * tail;
+    unsigned int head;
+    unsigned int tail;
+
     int full;
-    simple_interrupt_event_node_t nodes[1024];
+
+    simple_interrupt_event_node_t * nodes[1024];
+
 } simple_interrupt_event_queue_t; 
 
 void initial_interrupt_event_queue();
@@ -59,7 +62,7 @@ void initial_mouse();
 
 void set_interrupt(int interrupt_id, int code_seg_selector, void *p_handler, int gate_type, int priv_level, int enabled);
 
-simple_interrupt_event_node_t * enqueue_event_queue();
+int enqueue_event_queue(simple_interrupt_event_node_t *p_node);
 simple_interrupt_event_node_t * dequeue_event_queue();
 
 void process_keyboard_event(keyboard_event_t * process_keyboard_event);

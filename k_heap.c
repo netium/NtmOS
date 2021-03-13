@@ -1,10 +1,10 @@
 #include "k_heap.h"
 
-#define PAGE_SIZE 1024
-#define HEAP_BITMAP_SIZE 16384
+#define PAGE_SIZE (1024)
+#define HEAP_BITMAP_SIZE (16384)
 #define HEAP_SIZE (PAGE_SIZE * HEAP_BITMAP_SIZE)
 
-static char* heap = (char *)0x1000000;
+static char* heap = ((char *)0x1000000);
 static int heap_alloc[HEAP_BITMAP_SIZE];
 
 void* k_malloc(unsigned int size) {
@@ -20,7 +20,7 @@ void* k_malloc(unsigned int size) {
             found = 1;
             if (heap_alloc[i+j] != 0) {
                 found = 0;
-                i += (j + 2);
+                i += (j + 1);
                 break;
             }
         }

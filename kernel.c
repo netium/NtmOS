@@ -4,6 +4,7 @@
 #include "kernel_functions.h"
 #include "kernel_inits.h"
 #include "gui.h"
+#include "k_heap.h"
 
 void kernel_main(void) {
 
@@ -39,13 +40,18 @@ void kernel_main(void) {
 			_enable_interrupt_and_halt();
 		}
 		else {
-			if (node->type == 0) {
-				drawuint32(24, 8, node->keyboard_event.data);
-			}
-			else if (node->type == 1) {
-				process_mouse_event(&(node->mouse_event));
-			}
 			_enable_interrupt();
+			switch (node->type) {
+				case 0:
+					drawuint32(24, 8, node->keyboard_event.data);
+					break;
+				case 1:
+					process_mouse_event(&(node->mouse_event));
+					break;
+				default:
+					break;
+			}	
+			k_free(node);
 		}
 	}
 
