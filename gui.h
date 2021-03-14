@@ -20,25 +20,45 @@
 #define COL8_008484 14
 #define COL8_848484 15
 
+#define LAYER_STACK_SIZE 256
+
 typedef struct {
-    int res_width;
-    int res_height;
+    int x, y;
+    int width, height;
+} rectangle_t;
+
+typedef struct {
+    unsigned char *vbuf;
+    int x, y;
+    int width, height;
+    int z;
+    int col_inv, flags;
+} layer_t;
+
+typedef struct {
+    int width;
+    int height;
     unsigned char *pvram;
     unsigned char *pcharfonts;
     int font_width;
     int font_height;
-} screen_info_t;
+    int z_top;
 
-void initial_interrupt_event_queue();
+    layer_t *layer_stack[LAYER_STACK_SIZE];
+    layer_t layers[LAYER_STACK_SIZE];
+
+} screen_info_t;
 
 void init_screen();
 
-void render_ui();
-void drawstring(screen_info_t *pscreen, int x, int y, char *str);
-void drawchar(screen_info_t *pscreen, int x, int y, char ch, int palatte_id);
+void initial_interrupt_event_queue();
+
+void render_ui(layer_t * bg_window);
+void drawstring(layer_t *pscreen, int x, int y, char *str);
+void drawchar(layer_t *pscreen, int x, int y, char ch, int palatte_id);
 void boxfill8(unsigned char *vram, int xszie, unsigned char c, int x0, int y0, int x1, int y1);
-void drawuint32(int x, int y, unsigned int n);
-void drawpointer(int x, int y, void *p);
+void drawuint32(layer_t *pscreen, int x, int y, unsigned int n);
+void drawpointer(layer_t *pscreen, int x, int y, void *p);
 
 void boxfill8_ds(int xsize, unsigned char c, int x0, int y0, int x1, int y1);
 

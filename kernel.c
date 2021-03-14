@@ -6,6 +6,9 @@
 #include "gui.h"
 #include "k_heap.h"
 
+extern layer_t * bg_window;
+extern layer_t * mouse_layer;
+
 void kernel_main(void) {
 
 	int mem_size = mem_test();
@@ -26,7 +29,7 @@ void kernel_main(void) {
 
 	initial_keyboard();
 
-	render_ui();
+	render_ui(bg_window);
 
 	initial_mouse();
 
@@ -43,7 +46,7 @@ void kernel_main(void) {
 			_enable_interrupt();
 			switch (node->type) {
 				case 0:
-					drawuint32(24, 8, node->keyboard_event.data);
+					// drawuint32(bg_window, 24, 8, node->keyboard_event.data);
 					break;
 				case 1:
 					process_mouse_event(&(node->mouse_event));
