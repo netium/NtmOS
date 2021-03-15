@@ -5,6 +5,7 @@
 #include "kstring.h"
 #include "gui.h"
 #include "k_heap.h"
+#include "serial_port.h"
 
 #define IDT_TABLE_START_ADDR  ((void *)0x0)
 #define GDT_TABLE_START_ADDR  ((void *)0x800)
@@ -222,7 +223,6 @@ void wait_keyboard_send_ready(void) {
 }
 
 void process_keyboard_event(keyboard_event_t * process_keyboard_event) {
-
 }
 
 void process_mouse_event(mouse_event_t * p_mouse_event) {

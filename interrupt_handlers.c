@@ -9,6 +9,7 @@
 #include "kernel_functions.h"
 #include "kernel_inits.h"
 #include "k_heap.h"
+#include "serial_port.h"
 
 #include "gui.h"
 
@@ -46,6 +47,8 @@ __attribute__ ((interrupt)) void int2ch_handler(interrupt_frame_t *frame) {
     p_node->type = 1, p_node->mouse_event.data = data;
 
     int ret = enqueue_event_queue(p_node);
+
+    write_serial(COM1_PORT, data);
 }
 
 __attribute__ ((interrupt)) void int27h_handler(interrupt_frame_t *frame) {

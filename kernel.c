@@ -5,6 +5,7 @@
 #include "kernel_inits.h"
 #include "gui.h"
 #include "k_heap.h"
+#include "serial_port.h"
 
 extern layer_t * bg_window;
 extern layer_t * mouse_layer;
@@ -29,6 +30,10 @@ void kernel_main(void) {
 
 	initial_keyboard();
 
+	int i = initial_serial(COM1_PORT);
+
+	draw_uint_hex_scr(0, 8, COL8_00FFFF, i);
+
 	render_ui(bg_window);
 
 	initial_mouse();
@@ -46,7 +51,7 @@ void kernel_main(void) {
 			_enable_interrupt();
 			switch (node->type) {
 				case 0:
-					// drawuint32(bg_window, 24, 8, node->keyboard_event.data);
+					process_keyboard_event(&(node->keyboard_event));
 					break;
 				case 1:
 					process_mouse_event(&(node->mouse_event));

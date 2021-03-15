@@ -319,14 +319,14 @@ void draw_uint_hex_scr(int x, int y, char c, unsigned int n) {
     unsigned int mask = 0x0000000F;
     unsigned int shift = 28;
     for (int i = 0; i < 8; i++) {
-        int x = (n >> shift) & mask;
-        if (x >= 0 && x <= 9) {
-            drawfont8_scr(x, y, c, '0' + x);
+        int a = (n >> shift) & mask;
+        if (a >= 0 && a <= 9) {
+            drawfont8_scr(x, y, c, '0' + a);
         }
         else {
-            drawfont8_scr(x, y, c, (x - 10) + 'A');
+            drawfont8_scr(x, y, c, (a - 10) + 'A');
         }
-        x + g_screen_info.font_width;
+        x += g_screen_info.font_width;
         shift -= 4;
     }
 }
