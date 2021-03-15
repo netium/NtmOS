@@ -65,5 +65,5 @@ void boxfill8_ds(int xsize, unsigned char c, int x0, int y0, int x1, int y1);
 void writechar_dirty(char c);
 
 void move_mouse(int dx, int dy);
-
+void draw_uint_hex_scr(int x, int y, char c, unsigned int n);
 #endif

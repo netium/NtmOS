@@ -5,6 +5,7 @@
 #include "kernel_inits.h"
 #include "gui.h"
 #include "k_heap.h"
+#include "serial_port.h"
 
 extern layer_t * bg_window;
 extern layer_t * mouse_layer;
@@ -28,6 +29,10 @@ void kernel_main(void) {
 	_enable_interrupt();
 
 	initial_keyboard();
+
+	int i = initial_serial(COM1_PORT);
+
+	draw_uint_hex_scr(0, 8, COL8_00FFFF, i);
 
 	render_ui(bg_window);
 
