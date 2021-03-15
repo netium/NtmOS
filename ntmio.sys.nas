@@ -110,13 +110,13 @@ init_gdt:
     MOV bx, kernel_file_load_complete
     CALL display_message
 
-switch_vga_mode:
+; switch_vga_mode:
     ; Switch to 320x200x8 mode
-    MOV al, 0x13
-    MOV ah, 0x00
-    INT 0x10
-    MOV bx, switch_vga_mode_message
-    CALL display_message
+    ; MOV al, 0x13
+    ; MOV ah, 0x00
+    ; INT 0x10
+    ; MOV bx, switch_vga_mode_message
+    ; CALL display_message
 
     ; Now the FAT table is not needed anymore
     ; Initialize the GDT

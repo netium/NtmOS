@@ -23,6 +23,8 @@ void kernel_main(void) {
 	initial_gdt();
 	initial_idt();
 
+	k_printf("Init GDT and LDT complete!");
+
 	// Initialize the Programmable Interrupt Controller
 	initial_pic();
 
@@ -32,9 +34,7 @@ void kernel_main(void) {
 
 	int i = initial_serial(COM1_PORT);
 
-	draw_uint_hex_scr(0, 8, COL8_00FFFF, i);
-
-	render_ui(bg_window);
+	// render_ui(bg_window);
 
 	initial_mouse();
 

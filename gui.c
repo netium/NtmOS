@@ -8,6 +8,8 @@
 #include "kstring.h"
 #include "k_heap.h"
 
+static char* text_vbuf = (char*)0xB8000;
+
 static screen_info_t g_screen_info;
 
 static int cx, cy;
@@ -352,4 +354,14 @@ void drawfont8_scr(int x, int y, char c, unsigned char ch) {
         if ((d & 0x02) != 0) p[1] = c; else p[1] = COL8_000000;
         if ((d & 0x01) != 0) p[0] = c; else p[0] = COL8_000000;
     } 
+}
+
+void k_printf(const char *str) {
+    char ch;
+    char *vbuf = text_vbuf;
+
+    while ((ch = *str++) != 0) {
+        *vbuf++ = ch;
+        *vbuf++ = 0x01;
+    }
 }

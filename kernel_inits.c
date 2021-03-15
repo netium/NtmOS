@@ -254,7 +254,7 @@ void process_mouse_event(mouse_event_t * p_mouse_event) {
                 mouse_dy |= 0xffffff00;
             }
             mouse_dy = - mouse_dy;
-            move_mouse(mouse_dx, mouse_dy);
+            // move_mouse(mouse_dx, mouse_dy);
             break;
         default:
             break;

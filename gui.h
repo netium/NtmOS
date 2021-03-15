@@ -66,4 +66,7 @@ void writechar_dirty(char c);
 
 void move_mouse(int dx, int dy);
 void draw_uint_hex_scr(int x, int y, char c, unsigned int n);
+
+void k_printf(const char *str);
+
 #endif
