@@ -302,8 +302,6 @@ void writechar_dirty(char c) {
 }
 
 void move_mouse(int dx, int dy) {
-    drawuint32(bg_window, 56, 56, 8);
-
     refresh_screen();
 
     mouse_x += dx;
