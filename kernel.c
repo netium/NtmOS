@@ -51,7 +51,7 @@ void kernel_main(void) {
 			_enable_interrupt();
 			switch (node->type) {
 				case 0:
-					// drawuint32(bg_window, 24, 8, node->keyboard_event.data);
+					process_keyboard_event(&(node->keyboard_event));
 					break;
 				case 1:
 					process_mouse_event(&(node->mouse_event));

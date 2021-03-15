@@ -32,4 +32,6 @@ int read_serial(serial_port port);
 int is_transmit_empty(serial_port port);
 void write_serial(serial_port port, int data);
 
+void sp_put_string(char *str);
+
 #endif
