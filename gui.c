@@ -9,6 +9,11 @@
 #include "k_heap.h"
 
 static char* text_vbuf = (char*)0xB8000;
+static unsigned int cursor_x = 0, cursor_y = 4;
+
+#define TUI_COLUMNS (80)
+#define TUI_LINES (25)
+#define TUI_BYTES_PER_CHAR_IN_VRAM (2)
 
 static screen_info_t g_screen_info;
 
@@ -29,6 +34,10 @@ void refresh_screen();
 
 void drawfont8_scr(int x, int y, char c, unsigned char ch);
 void draw_uint_hex_scr(int x, int y, char c, unsigned int n);
+
+
+
+void scroll_up_tui_console(int nlines);
 
 void init_screen() {
     g_screen_info.width = 320;
@@ -361,7 +370,77 @@ void k_printf(const char *str) {
     char *vbuf = text_vbuf;
 
     while ((ch = *str++) != 0) {
-        *vbuf++ = ch;
-        *vbuf++ = 0x01;
+        if (ch == 0x0a) {
+            cursor_x = 0;
+        }
+        else if (ch == 0x0d) {
+            cursor_y += 1;
+            if (cursor_y >= TUI_LINES) {scroll_up_tui_console(1); }
+        }
+        else {
+            vbuf[(cursor_y * TUI_COLUMNS + cursor_x) * TUI_BYTES_PER_CHAR_IN_VRAM] = ch;
+            vbuf[(cursor_y * TUI_COLUMNS + cursor_x) * TUI_BYTES_PER_CHAR_IN_VRAM + 1] = 0x0B;
+            if (ch == 0x0a) cursor_x = 0;
+
+            cursor_x++;
+            if (cursor_x >= TUI_COLUMNS) {cursor_x = 0, cursor_y++;}
+            if (cursor_y >= TUI_LINES) {scroll_up_tui_console(1); }
+        }
     }
+    cursor_x = 0;
+    cursor_y++;
+
+    if (cursor_y >= TUI_LINES) {scroll_up_tui_console(1);}
+    tui_update_cursor(cursor_x, cursor_y);
+}
+
+void scroll_up_tui_console(int nlines) {
+    if (nlines <= 0) return;
+    if (nlines > TUI_LINES) nlines = TUI_LINES;
+
+    char * dest = text_vbuf;
+    char * source = text_vbuf + (nlines * TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM);
+
+    for (int i = nlines; i < TUI_LINES; i++) {
+        k_memcpy(dest, source, TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM);
+        dest += TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM;
+        source += TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM;
+    }
+
+    for (int i = TUI_LINES - nlines; i < TUI_LINES; i++) {
+        k_memset(dest + i * TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM, 0, TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM);
+    }
+
+    cursor_y = TUI_LINES - nlines;
+    if (cursor_y < 0) cursor_y = 0;
+    tui_update_cursor(cursor_x, cursor_y);
+}
+
+void tui_move_cursor(unsigned int x, unsigned int y) {
+    cursor_x = x >= TUI_COLUMNS ? TUI_COLUMNS - 1 : x;
+    cursor_y = y >= TUI_LINES ? TUI_LINES - 1 : y;
+}
+
+
+void tui_get_cursor_position(unsigned int *px, unsigned int *py) {
+    unsigned short p = 0;
+    _io_out8(0x3D4, 0x0F);
+    p |= _io_in8(0x3D5);
+    _io_out8(0x3D4, 0x0E);
+    p |= ((unsigned short)_io_in8(0x3D5)) << 8;
+
+    *px = p % TUI_COLUMNS ;
+    *py = p / TUI_COLUMNS ; 
+}
+
+
+void tui_update_cursor(unsigned int x, unsigned int y) {
+    if (x >= TUI_COLUMNS) x = TUI_COLUMNS - 1;
+    if (y >= TUI_LINES) y = TUI_LINES - 1;
+    unsigned short p = y * TUI_COLUMNS + x;
+
+    _io_out8(0x3D4, 0x0F);
+    _io_out8(0x3D5, (unsigned char) (p & 0xFF));
+    _io_out8(0x3D4, 0x0E);
+    _io_out8(0x3D5, (unsigned char) ((p >> 8) & 0xFF));
 }

@@ -16,27 +16,44 @@ void kernel_main(void) {
 
 	kernel_relocate();
 
-	init_screen();
+	k_printf("Kernel protected mode intialization start...");
 
 	initial_interrupt_event_queue();
+
+	k_printf("Init interrupt event queue complete!");
 
 	initial_gdt();
 	initial_idt();
 
 	k_printf("Init GDT and LDT complete!");
 
+	char str[256];
+
 	// Initialize the Programmable Interrupt Controller
 	initial_pic();
 
+	k_printf("Init programmable interrupt controller complete!");
+
 	_enable_interrupt();
+
+	k_printf("Enable interrupt");
 
 	initial_keyboard();
 
+	k_printf("Init keyboard complete!");
+
 	int i = initial_serial(COM1_PORT);
+
+	k_sprintf(str, "Init serial port COM1 with return value: %x", i);
+	k_printf(str);
 
 	// render_ui(bg_window);
 
 	initial_mouse();
+
+	k_printf("Init mouse completed!");
+
+	k_printf("Kernel is running......");
 
 	// Done remove this statement, as it will casue the kernel main fucntion to return, 
 	// and as this function is the entry point for kernel execution file, it will make let the function return back to an random address
