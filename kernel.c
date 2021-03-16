@@ -42,6 +42,12 @@ void kernel_main(void) {
 
 	k_printf("Init keyboard complete!");
 
+	initial_pit();
+
+	k_printf("Init prgrammable internal timer complete!");
+
+	_io_out8(PIC0_IMR, 0xf8);	// enable PIT/PIC1/Keyboard
+
 	int i = initial_serial(COM1_PORT);
 
 	k_sprintf(str, "Init serial port COM1 with return value: %x", i);
@@ -50,6 +56,8 @@ void kernel_main(void) {
 	// render_ui(bg_window);
 
 	initial_mouse();
+
+	_io_out8(PIC1_IMR, 0xef);	// enable mouse
 
 	k_printf("Init mouse completed!");
 

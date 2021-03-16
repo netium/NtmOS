@@ -13,11 +13,17 @@
 
 #include "gui.h"
 
+#include "k_timer.h"
+
+__attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
+    _io_out8(PIC0_OCW2, 0x60);
+}
+
 __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
      unsigned char status;
      char keycode;
 
-     _io_out8(0x20, 0x61);  // Write EOI (End of Interrupt) to PIC port to acknowledge
+     _io_out8(PIC0_OCW2, 0x61);  // Write EOI (End of Interrupt) to PIC port to acknowledge
 
     unsigned char data = _io_in8(0x60);
 
@@ -30,6 +36,9 @@ __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
     int ret = enqueue_event_queue(p_node);
 }
 
+__attribute__ ((interrupt)) void int24h_handler(interrupt_frame_t *frame) {
+    k_printf("Int 4h triggered");
+}
 
 __attribute__ ((interrupt)) void int2ch_handler(interrupt_frame_t *frame) {
     unsigned char data;

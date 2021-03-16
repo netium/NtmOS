@@ -56,6 +56,7 @@ void initial_gdt();
 void initial_idt();
 
 void initial_pic();
+void initial_pit();
 
 void initial_keyboard();
 void initial_mouse();

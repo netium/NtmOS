@@ -6,6 +6,7 @@
 #include "gui.h"
 #include "k_heap.h"
 #include "serial_port.h"
+#include "k_timer.h"
 
 #define IDT_TABLE_START_ADDR  ((void *)0x0)
 #define GDT_TABLE_START_ADDR  ((void *)0x800)
@@ -71,6 +72,7 @@ void initial_idt() {
         p_idt_entries[i].fields.attr = 0;
     }
 
+    set_interrupt(0x20, 0x01, int20h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
     set_interrupt(0x21, 0x01, int21h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
     set_interrupt(0x2c, 0x01, int2ch_handler, IDT_INTERRUPT_GATE, 0x0, 1);
     set_interrupt(0x27, 0x01, int27h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
@@ -121,6 +123,18 @@ void initial_pic() {
 	/* mask interrupts */
 	// _io_out8(0x21 , 0xff);
 	// _io_out8(0xA1 , 0xff);
+}
+
+void initial_pit() {
+    _io_out8(0x43, 0x34);
+    _io_out8(0x40, 0x9c);
+    _io_out8(0x40, 0x2e);
+
+    g_timer_control.tick = 0x0L;
+
+    for (int i = 0; i < MAX_TIMERS; i++) {
+        g_timer_control.timers->flags = 0;
+    }
 }
 
 void initial_keyboard() {
