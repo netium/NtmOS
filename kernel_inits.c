@@ -6,6 +6,7 @@
 #include "gui.h"
 #include "k_heap.h"
 #include "serial_port.h"
+#include "k_timer.h"
 
 #define IDT_TABLE_START_ADDR  ((void *)0x0)
 #define GDT_TABLE_START_ADDR  ((void *)0x800)
@@ -71,6 +72,7 @@ void initial_idt() {
         p_idt_entries[i].fields.attr = 0;
     }
 
+    set_interrupt(0x20, 0x01, int20h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
     set_interrupt(0x21, 0x01, int21h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
     set_interrupt(0x2c, 0x01, int2ch_handler, IDT_INTERRUPT_GATE, 0x0, 1);
     set_interrupt(0x27, 0x01, int27h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
@@ -121,6 +123,18 @@ void initial_pic() {
 	/* mask interrupts */
 	// _io_out8(0x21 , 0xff);
 	// _io_out8(0xA1 , 0xff);
+}
+
+void initial_pit() {
+    _io_out8(0x43, 0x34);
+    _io_out8(0x40, 0x9c);
+    _io_out8(0x40, 0x2e);
+
+    g_timer_control.tick = 0x0L;
+
+    for (int i = 0; i < MAX_TIMERS; i++) {
+        g_timer_control.timers->flags = 0;
+    }
 }
 
 void initial_keyboard() {
@@ -209,6 +223,7 @@ simple_interrupt_event_node_t * dequeue_event_queue() {
 
     if (g_event_queue.head >= (sizeof(g_event_queue.nodes) / sizeof(g_event_queue.nodes[0])))
         g_event_queue.head = 0;
+
     g_event_queue.full = 0;
 
     return node;
@@ -254,9 +269,17 @@ void process_mouse_event(mouse_event_t * p_mouse_event) {
                 mouse_dy |= 0xffffff00;
             }
             mouse_dy = - mouse_dy;
-            move_mouse(mouse_dx, mouse_dy);
+            // move_mouse(mouse_dx, mouse_dy);
             break;
         default:
             break;
+    }
+}
+
+void process_timer_event(timer_event_t * p_timer_event) {
+    if (0 == p_timer_event) return;
+
+    if (0 != p_timer_event->p_timer->pf) {
+        p_timer_event->p_timer->pf(p_timer_event->p_timer);
     }
 }

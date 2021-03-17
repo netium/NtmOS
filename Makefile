@@ -34,8 +34,8 @@ ntmio.sys: ntmio.sys.o
 ntmio.sys.o: ntmio.sys.nas
 	$(ASM) -fbin ntmio.sys.nas -o ntmio.sys.o
 
-kernel.sys: kstring.o kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o interrupt_handlers.o k_heap.o serial_port.o
-	$(LD) kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o interrupt_handlers.o kstring.o k_heap.o serial_port.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
+kernel.sys: kstring.o kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o interrupt_handlers.o k_heap.o serial_port.o k_timer.o
+	$(LD) kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o interrupt_handlers.o kstring.o k_heap.o serial_port.o k_timer.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
 	objcopy -O binary -j.text -j.data -j.bss -j.rodata kernel.sys.tmp kernel.sys
 
 testapp: hlt.o boot_main.o test_app.c
@@ -55,6 +55,9 @@ kernel_functions.o: kernel_functions.nas
 
 gui.o: gui.c gui.h
 	$(CC) $(CCFLAGS) gui.c -c -o gui.o
+
+k_timer.o: k_timer.c k_timer.h
+	$(CC) $(CCFLAGS) k_timer.c -c -o k_timer.o
 
 k_vga.o: k_vga.c k_vga.h
 	$(CC) $(CCFLAGS) k_vga.c -c -o k_vga.o

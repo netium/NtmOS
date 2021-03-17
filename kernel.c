@@ -10,37 +10,65 @@
 extern layer_t * bg_window;
 extern layer_t * mouse_layer;
 
+void trigger_task_switch (timer_t *t);
+
 void kernel_main(void) {
 
 	int mem_size = mem_test();
 
 	kernel_relocate();
 
-	init_screen();
+	k_printf("Kernel protected mode intialization start...");
 
 	initial_interrupt_event_queue();
+
+	k_printf("Init interrupt event queue complete!");
 
 	initial_gdt();
 	initial_idt();
 
+	k_printf("Init GDT and LDT complete!");
+
+	char str[256];
+
 	// Initialize the Programmable Interrupt Controller
 	initial_pic();
 
+	k_printf("Init programmable interrupt controller complete!");
+
 	_enable_interrupt();
+
+	k_printf("Enable interrupt");
 
 	initial_keyboard();
 
+	k_printf("Init keyboard complete!");
+
+	initial_pit();
+
+	k_printf("Init prgrammable internal timer complete!");
+
+	timer_t *t = k_timer_alloc();
+	k_init_timer(t, trigger_task_switch, 0);
+	k_set_timer_time(t, 200);
+
+	_io_out8(PIC0_IMR, 0xf8);	// enable PIT/PIC1/Keyboard
+
 	int i = initial_serial(COM1_PORT);
 
-	draw_uint_hex_scr(0, 8, COL8_00FFFF, i);
+	k_sprintf(str, "Init serial port COM1 with return value: %x", i);
+	k_printf(str);
 
-	render_ui(bg_window);
+	// render_ui(bg_window);
 
 	initial_mouse();
 
-	// Done remove this statement, as it will casue the kernel main fucntion to return, 
-	// and as this function is the entry point for kernel execution file, it will make let the function return back to an random address
-	// and cause the virtual machine to complain about the crash.
+	_io_out8(PIC1_IMR, 0xef);	// enable mouse
+
+	k_printf("Init mouse completed!");
+
+	k_printf("Kernel is running......");
+
 	while (1) {
 		_io_cli();	// Temporarily disable the interrupt, to prevent system from re-entry the manipulation of the event queue
 		simple_interrupt_event_node_t *node = dequeue_event_queue();
@@ -50,11 +78,14 @@ void kernel_main(void) {
 		else {
 			_enable_interrupt();
 			switch (node->type) {
-				case 0:
+				case KEYBOARD_EVENT:
 					process_keyboard_event(&(node->keyboard_event));
 					break;
-				case 1:
+				case MOUSE_EVENT:
 					process_mouse_event(&(node->mouse_event));
+					break;
+				case TIMER_EVENT:
+					process_timer_event(&(node->timer_event));
 					break;
 				default:
 					break;
@@ -63,8 +94,14 @@ void kernel_main(void) {
 		}
 	}
 
+	// Done remove this statement, as it will casue the kernel main fucntion to return, 
+	// and as this function is the entry point for kernel execution file, it will make let the function return back to an random address
+	// and cause the virtual machine to complain about the crash.
 	while(1) _io_hlt();
 
 	return;
 }
 
+void trigger_task_switch (timer_t *t) {
+	k_set_timer_time(t, 200);
+}

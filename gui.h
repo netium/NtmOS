@@ -66,4 +66,17 @@ void writechar_dirty(char c);
 
 void move_mouse(int dx, int dy);
 void draw_uint_hex_scr(int x, int y, char c, unsigned int n);
+
+void k_printf(const char *str);
+void tui_move_cursor(unsigned int x, unsigned int y);
+
+typedef enum {
+    OK,
+    WARNING,
+    ERROR
+} info_level_t;
+
+void tui_get_cursor_position(unsigned int *px, unsigned int *py);
+void tui_update_cursor(unsigned int x, unsigned int y);
+
 #endif

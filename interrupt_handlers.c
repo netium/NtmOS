@@ -13,11 +13,41 @@
 
 #include "gui.h"
 
+#include "k_timer.h"
+
+__attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
+    _io_out8(PIC0_OCW2, 0x60);
+
+    g_timer_control.tick++;
+
+    if (g_timer_control.next == 0 || g_timer_control.next->timeout > g_timer_control.tick) return;
+
+    timer_t ** pp_next = &g_timer_control.next;
+
+    while (*pp_next != 0 && (*pp_next)->timeout <= g_timer_control.tick) {
+        timer_t *timer = *pp_next;
+        *pp_next = timer->next;
+        timer->next = 0;
+        timer->flags = TIMER_ALLOC;
+
+        simple_interrupt_event_node_t *p_node = k_malloc(sizeof (simple_interrupt_event_node_t));
+
+        if (p_node == 0) {
+            k_printf("Cannot allocate event node");
+            break;
+        }
+
+        p_node->type = TIMER_EVENT, p_node->timer_event.p_timer = timer;
+
+        int ret = enqueue_event_queue(p_node);
+    }
+}
+
 __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
      unsigned char status;
      char keycode;
 
-     _io_out8(0x20, 0x61);  // Write EOI (End of Interrupt) to PIC port to acknowledge
+     _io_out8(PIC0_OCW2, 0x61);  // Write EOI (End of Interrupt) to PIC port to acknowledge
 
     unsigned char data = _io_in8(0x60);
 
@@ -30,6 +60,9 @@ __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
     int ret = enqueue_event_queue(p_node);
 }
 
+__attribute__ ((interrupt)) void int24h_handler(interrupt_frame_t *frame) {
+    k_printf("Int 4h triggered");
+}
 
 __attribute__ ((interrupt)) void int2ch_handler(interrupt_frame_t *frame) {
     unsigned char data;

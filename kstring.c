@@ -46,6 +46,7 @@ char* k_strcat(char* destination, const char* source) {
 	char* d = destination;
 	while (*d != 0) d++;
 	while (*source != 0) { *d = *source; d++, source++; }
+	*d = 0;
 	return destination;
 }
 
@@ -77,6 +78,12 @@ char* k_strcpy(char* destination, const char* source) {
 	char* d = destination;
 	while ((*d++ = *source++) != 0);
 	return destination;
+}
+
+char* k_strrev(char *str) {
+	size_t l = k_strlen(str);
+	k_memrev(str, l);
+	return str;
 }
 
 void k_rev8(char* pbyte1, char* pbyte2) {
@@ -112,4 +119,84 @@ void * k_memrev(void *ptr, size_t num) {
 	}
 
 	return ptr;
+}
+
+void *k_itoa(int num, char* str, int base){
+	int i = 0;
+	int is_neg = 0;
+
+	if (num == 0) {
+		str[i++] = '0';
+		str[i] = 0x0;
+		return str;
+	}
+
+	if (num < 0 && base == 10) {
+		is_neg = 1;
+		num = -num;
+	}
+
+	while (num != 0) {
+		int r = num % base;
+		str[i++] = (r > 9) ? (r - 10) + 'A' : r + '0';
+		num /= base;
+	}
+
+	if (is_neg) str[i++] = '-';
+
+	str[i] = 0x0;
+
+	k_memrev(str, i);
+
+	return str;
+}
+
+int k_sprintf(char *str, const char *fmt, ...) {
+	char * sp = (char*)&fmt;
+	sp += sizeof(const char*);
+
+	int int_temp;
+	char char_temp;
+	char *string_temp;
+	double double_temp;
+
+	char ch;
+	int l = 0;
+
+	char buffer[256];
+
+	while ( ch = *fmt++) {
+		if ('%' == ch) {
+			switch (ch = *fmt++) {
+				case '%':
+					str[l++] = ch;
+					break;
+				case 's':
+					string_temp = *(char **)sp;
+					k_strcat(str, string_temp);
+					l += k_strlen(string_temp);
+					sp += sizeof (char *);
+					break;
+				case 'd':
+					int_temp = *(int *)sp;
+					k_itoa(int_temp, buffer, 10);
+					k_strcat(str, buffer);
+					l += k_strlen(buffer);
+					sp += sizeof (int);
+					break;
+				case 'x':
+					int_temp = *(int *)sp;
+					k_itoa(int_temp, buffer, 16);
+					k_strcat(str, buffer);
+					l += k_strlen(buffer);
+					sp += sizeof (int);
+					break;
+			}
+		}
+		else {
+			str[l++] = ch;
+		}
+	}
+	str[l] = 0x0;
+	return l;
 }
