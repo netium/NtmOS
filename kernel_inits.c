@@ -223,6 +223,7 @@ simple_interrupt_event_node_t * dequeue_event_queue() {
 
     if (g_event_queue.head >= (sizeof(g_event_queue.nodes) / sizeof(g_event_queue.nodes[0])))
         g_event_queue.head = 0;
+
     g_event_queue.full = 0;
 
     return node;
@@ -272,5 +273,13 @@ void process_mouse_event(mouse_event_t * p_mouse_event) {
             break;
         default:
             break;
+    }
+}
+
+void process_timer_event(timer_event_t * p_timer_event) {
+    if (0 == p_timer_event) return;
+
+    if (0 != p_timer_event->p_timer->pf) {
+        p_timer_event->p_timer->pf(p_timer_event->p_timer);
     }
 }
