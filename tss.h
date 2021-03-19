@@ -31,4 +31,6 @@ typedef struct {
     unsigned short rev12, iopb_offset;
 } tss_t;
 
+extern tss_t g_tss1, g_tss2;
+
 #endif

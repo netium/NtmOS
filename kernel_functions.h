@@ -29,5 +29,7 @@ void _enable_interrupt();
 
 void _enable_interrupt_and_halt();
 
+void _set_tr(int tr);
+
 #endif
 

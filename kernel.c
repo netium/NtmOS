@@ -6,6 +6,7 @@
 #include "gui.h"
 #include "k_heap.h"
 #include "serial_port.h"
+#include "tss.h"
 
 extern layer_t * bg_window;
 extern layer_t * mouse_layer;
@@ -67,8 +68,15 @@ void kernel_main(void) {
 
 	k_printf("Init mouse completed!");
 
+	g_tss1.ldtr = 0;
+	g_tss1.iopb_offset = 0x40000000;
+
+	g_tss2.ldtr = 0;
+	g_tss2.iopb_offset = 0x40000000;
+
 	k_printf("Kernel is running......");
 
+	
 	while (1) {
 		_io_cli();	// Temporarily disable the interrupt, to prevent system from re-entry the manipulation of the event queue
 		simple_interrupt_event_node_t *node = dequeue_event_queue();

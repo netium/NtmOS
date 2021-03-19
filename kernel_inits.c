@@ -7,6 +7,7 @@
 #include "k_heap.h"
 #include "serial_port.h"
 #include "k_timer.h"
+#include "tss.h"
 
 #define IDT_TABLE_START_ADDR  ((void *)0x0)
 #define GDT_TABLE_START_ADDR  ((void *)0x800)
@@ -50,11 +51,28 @@ void initial_gdt() {
         p_gdt_entries[i].dwords[1] = 0x0;
     }
 
+    set_tss_into_gdt(3, &g_tss1, sizeof(g_tss1));
+    set_tss_into_gdt(4, &g_tss2, sizeof(g_tss2));
+
     gdtr_t gdtr;
     gdtr.n_entries = (N_GDT_ENTRIES << 3) - 1;
     gdtr.p_start_addr = GDT_TABLE_START_ADDR;
     _load_gdt(gdtr);
+    _set_tr(3 << 3);
     _set_eflags(eflags);
+}
+
+int set_tss_into_gdt(unsigned int slot, void *base_addr, unsigned int limit) {
+    if (slot >= 8192) return -1;
+    gdt_entry_t *entry = ((gdt_entry_t *)GDT_TABLE_START_ADDR) + slot;
+    entry->fields.base_low_word = (unsigned int)base_addr & 0xFFFF;
+    entry->fields.base_mid_byte = ((unsigned int)base_addr >> 16) & 0xFF;
+    entry->fields.base_high_byte = ((unsigned int)base_addr >> 24) & 0xFF;
+    entry->fields.limit_low_word = (unsigned int)limit & 0xFFFF;
+    entry->fields.limit_high = ((unsigned int)limit >> 16) & 0xF; 
+    entry->fields.access.access_byte = 0x89;
+    entry->fields.gr = 0x0;
+    entry->fields.sz = 0x1;
 }
 
 void initial_idt() {

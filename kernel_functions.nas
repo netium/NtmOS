@@ -19,6 +19,8 @@ GLOBAL _get_eip
 
 GLOBAL _enable_interrupt_and_halt
 
+GLOBAL _set_tr
+
 section .text
 
 _io_hlt:
@@ -99,4 +101,8 @@ _enable_interrupt:
 _enable_interrupt_and_halt:
 	STI
 	HLT
+	RET
+
+_set_tr:
+	LTR [esp + 4]
 	RET
