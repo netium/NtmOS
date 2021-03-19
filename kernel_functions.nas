@@ -21,6 +21,8 @@ GLOBAL _enable_interrupt_and_halt
 
 GLOBAL _set_tr
 
+GLOBAL _switch_task
+
 section .text
 
 _io_hlt:
@@ -105,4 +107,8 @@ _enable_interrupt_and_halt:
 
 _set_tr:
 	LTR [esp + 4]
+	RET
+
+_switch_task:
+	JMP FAR [esp + 4]
 	RET
