@@ -51,14 +51,13 @@ void initial_gdt() {
         p_gdt_entries[i].dwords[1] = 0x0;
     }
 
-    set_tss_into_gdt(3, &g_tss1, sizeof(g_tss1));
-    set_tss_into_gdt(4, &g_tss2, sizeof(g_tss2));
+
 
     gdtr_t gdtr;
     gdtr.n_entries = (N_GDT_ENTRIES << 3) - 1;
     gdtr.p_start_addr = GDT_TABLE_START_ADDR;
     _load_gdt(gdtr);
-    _set_tr(3 << 3);
+
     _set_eflags(eflags);
 }
 
@@ -300,4 +299,39 @@ void process_timer_event(timer_event_t * p_timer_event) {
     if (0 != p_timer_event->p_timer->pf) {
         p_timer_event->p_timer->pf(p_timer_event->p_timer);
     }
+}
+
+void initial_tasks() {
+	g_tss3.ldtr = 0;
+	g_tss3.iopb_offset = 0x40000000;
+
+	g_tss4.ldtr = 0;
+	g_tss4.iopb_offset = 0x40000000;
+    g_tss4.eflags = 0x202;
+    g_tss4.eax = 0x0;
+    g_tss4.ebx = 0x0;
+    g_tss4.ecx = 0x0;
+    g_tss4.edx = 0x0;
+    g_tss4.ebp = 0x0;
+    g_tss4.esi = 0x0;
+    g_tss4.edi = 0x0;
+    g_tss4.cs = 0x1 << 3;
+    g_tss4.ds = 0x2 << 3;
+    g_tss4.ss = 0x2 << 3;
+    g_tss4.es = 0x2 << 3;
+    g_tss4.fs = 0x2 << 3;
+    g_tss4.gs = 0x2 << 3;
+    g_tss4.esp = 16 * 1024 * 1024;
+    g_tss4.eip = (unsigned int)task_main;
+
+    set_tss_into_gdt(3, &g_tss3, sizeof(g_tss3));
+    set_tss_into_gdt(4, &g_tss4, sizeof(g_tss4));
+
+    _set_tr(3 << 3);
+
+    current_task = &g_tss3;
+
+    task_switch_timer = k_timer_alloc();
+    k_init_timer(task_switch_timer, switch_task, 100);
+    k_set_timer_time(task_switch_timer, 1000);
 }

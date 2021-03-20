@@ -11,8 +11,6 @@
 extern layer_t * bg_window;
 extern layer_t * mouse_layer;
 
-void trigger_task_switch (timer_t *t);
-
 void kernel_main(void) {
 
 	int mem_size = mem_test();
@@ -49,10 +47,6 @@ void kernel_main(void) {
 
 	k_printf("Init prgrammable internal timer complete!");
 
-	timer_t *t = k_timer_alloc();
-	k_init_timer(t, trigger_task_switch, 0);
-	k_set_timer_time(t, 200);
-
 	_io_out8(PIC0_IMR, 0xf8);	// enable PIT/PIC1/Keyboard
 
 	int i = initial_serial(COM1_PORT);
@@ -68,15 +62,10 @@ void kernel_main(void) {
 
 	k_printf("Init mouse completed!");
 
-	g_tss1.ldtr = 0;
-	g_tss1.iopb_offset = 0x40000000;
-
-	g_tss2.ldtr = 0;
-	g_tss2.iopb_offset = 0x40000000;
-
 	k_printf("Kernel is running......");
 
-	
+	initial_tasks();
+
 	while (1) {
 		_io_cli();	// Temporarily disable the interrupt, to prevent system from re-entry the manipulation of the event queue
 		simple_interrupt_event_node_t *node = dequeue_event_queue();
@@ -108,8 +97,4 @@ void kernel_main(void) {
 	while(1) _io_hlt();
 
 	return;
-}
-
-void trigger_task_switch (timer_t *t) {
-	k_set_timer_time(t, 200);
 }

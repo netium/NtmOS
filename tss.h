@@ -1,6 +1,8 @@
 #ifndef _TSS_H_
 #define _TSS_H_
 
+#include "k_timer.h"
+
 // refer to: https://wiki.osdev.org/Task_State_Segment
 typedef struct {
     unsigned short link, rev1;
@@ -31,6 +33,14 @@ typedef struct {
     unsigned short rev12, iopb_offset;
 } tss_t;
 
-extern tss_t g_tss1, g_tss2;
+extern tss_t g_tss3, g_tss4;
+
+extern tss_t * current_task;
+
+extern timer_t *task_switch_timer;
+
+void task_main();
+
+void switch_task(timer_t * timer);
 
 #endif
