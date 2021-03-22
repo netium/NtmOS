@@ -10,11 +10,13 @@
 #include "kernel_inits.h"
 #include "k_heap.h"
 #include "serial_port.h"
+#include "tss.h"
 
 #include "gui.h"
 
 #include "k_timer.h"
 
+// Programmable internal timer interrrupt
 __attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
     _io_out8(PIC0_OCW2, 0x60);
 
@@ -24,25 +26,40 @@ __attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
 
     timer_t ** pp_next = &g_timer_control.next;
 
+    int time_to_switch_task = 0;
+
     while (*pp_next != 0 && (*pp_next)->timeout <= g_timer_control.tick) {
         timer_t *timer = *pp_next;
         *pp_next = timer->next;
         timer->next = 0;
         timer->flags = TIMER_ALLOC;
 
-        simple_interrupt_event_node_t *p_node = k_malloc(sizeof (simple_interrupt_event_node_t));
-
-        if (p_node == 0) {
-            k_printf("Cannot allocate event node");
-            break;
+        // If the timer is for task switch, then don't put it into the task' event queue
+        // But directly handle by the kernel
+        if (timer == task_switch_timer) {
+            time_to_switch_task = 1;
         }
+        else {
+            simple_interrupt_event_node_t *p_node = k_malloc(sizeof (simple_interrupt_event_node_t));
 
-        p_node->type = TIMER_EVENT, p_node->timer_event.p_timer = timer;
+            if (p_node == 0) {
+                k_printf("Cannot allocate event node");
+                break;
+            }
 
-        int ret = enqueue_event_queue(p_node);
+            p_node->type = TIMER_EVENT, p_node->timer_event.p_timer = timer;
+
+            int ret = enqueue_event_queue(p_node);
+        }
+    }
+
+    if (1 == time_to_switch_task) {
+        _enable_interrupt();
+        task_switch_timer->pf(task_switch_timer);
     }
 }
 
+// Keyboard interrupt
 __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
      unsigned char status;
      char keycode;
@@ -60,10 +77,13 @@ __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
     int ret = enqueue_event_queue(p_node);
 }
 
+// COM ports interrupt
 __attribute__ ((interrupt)) void int24h_handler(interrupt_frame_t *frame) {
+    // This is for COM ports
     k_printf("Int 4h triggered");
 }
 
+// Mouse interrupt
 __attribute__ ((interrupt)) void int2ch_handler(interrupt_frame_t *frame) {
     unsigned char data;
 
