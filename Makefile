@@ -34,8 +34,8 @@ ntmio.sys: ntmio.sys.o
 ntmio.sys.o: ntmio.sys.nas
 	$(ASM) -fbin ntmio.sys.nas -o ntmio.sys.o
 
-kernel.sys: kstring.o kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o interrupt_handlers.o k_heap.o serial_port.o k_timer.o tss.o
-	$(LD) kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o interrupt_handlers.o kstring.o k_heap.o serial_port.o k_timer.o tss.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
+kernel.sys: kstring.o kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o interrupt_handlers.o k_heap.o serial_port.o k_timer.o tasks.o
+	$(LD) kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o interrupt_handlers.o kstring.o k_heap.o serial_port.o k_timer.o tasks.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
 	objcopy -O binary -j.text -j.data -j.bss -j.rodata kernel.sys.tmp kernel.sys
 
 testapp: hlt.o boot_main.o test_app.c
@@ -71,8 +71,8 @@ kstring.o: kstring.h kstring.c
 serial_port.o: serial_port.h serial_port.c
 	$(CC) $(CCFLAGS) serial_port.c -c -o serial_port.o
 
-tss.o: tss.h tss.c
-	$(CC) $(CCFLAGS) tss.c -c -o tss.o
+tasks.o: tasks.h tasks.c
+	$(CC) $(CCFLAGS) tasks.c -c -o tss.o
 
 clean:
 	rm *.sys *.img *.o testapp

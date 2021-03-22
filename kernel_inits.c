@@ -7,7 +7,7 @@
 #include "k_heap.h"
 #include "serial_port.h"
 #include "k_timer.h"
-#include "tss.h"
+#include "tasks.h"
 
 #define IDT_TABLE_START_ADDR  ((void *)0x0)
 #define GDT_TABLE_START_ADDR  ((void *)0x800)
