@@ -331,7 +331,7 @@ void initial_tasks() {
 
     current_task = &g_tss3;
 
-    task_switch_timer = k_timer_alloc();
-    k_init_timer(task_switch_timer, switch_task, 100);
-    k_set_timer_time(task_switch_timer, 1000);
+    g_task_switch_timer = k_timer_alloc();
+    k_init_timer(g_task_switch_timer, switch_task, 100);
+    k_set_timer_time(g_task_switch_timer, 1000);
 }

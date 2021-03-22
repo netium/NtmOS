@@ -37,7 +37,7 @@ extern tss_t g_tss3, g_tss4;
 
 extern tss_t * current_task;
 
-extern timer_t *task_switch_timer;
+extern timer_t *g_task_switch_timer;
 
 void task_main();
 

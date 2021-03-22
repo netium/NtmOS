@@ -31,7 +31,7 @@ void _enable_interrupt_and_halt();
 
 void _set_tr(int tr);
 
-void _switch_task(int target_address, int tss_id);
+void _switch_task(int address, int tss_id);
 
 #endif
 

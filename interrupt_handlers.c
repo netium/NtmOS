@@ -36,7 +36,7 @@ __attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
 
         // If the timer is for task switch, then don't put it into the task' event queue
         // But directly handle by the kernel
-        if (timer == task_switch_timer) {
+        if (timer == g_task_switch_timer) {
             time_to_switch_task = 1;
         }
         else {
@@ -55,7 +55,7 @@ __attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
 
     if (1 == time_to_switch_task) {
         _enable_interrupt();
-        task_switch_timer->pf(task_switch_timer);
+        g_task_switch_timer->pf(g_task_switch_timer);
     }
 }
 
