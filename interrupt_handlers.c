@@ -49,7 +49,7 @@ __attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
 
             p_node->type = TIMER_EVENT, p_node->timer_event.p_timer = timer;
 
-            int ret = enqueue_event_queue(p_node);
+            int ret = enqueue_event_queue(&g_current_task->event_queue, p_node);
         }
     }
 
@@ -74,7 +74,7 @@ __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
 
     p_node->type = 0, p_node->keyboard_event.data = data;
 
-    int ret = enqueue_event_queue(p_node);
+    int ret = enqueue_event_queue(&g_current_task->event_queue, p_node);
 }
 
 // COM ports interrupt
@@ -99,7 +99,7 @@ __attribute__ ((interrupt)) void int2ch_handler(interrupt_frame_t *frame) {
 
     p_node->type = 1, p_node->mouse_event.data = data;
 
-    int ret = enqueue_event_queue(p_node);
+    int ret = enqueue_event_queue(&g_current_task->event_queue, p_node);
 
     write_serial(COM1_PORT, data);
 }

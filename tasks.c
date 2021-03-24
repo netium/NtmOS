@@ -37,10 +37,6 @@ void process_mouse_event(task_t * task, mouse_event_t * p_mouse_event);
 
 void process_timer_event(task_t * task, timer_event_t * p_timer_event);
 
-int enqueue_event_queue(simple_interrupt_event_queue_t *queue, simple_interrupt_event_node_t *p_node);
-
-simple_interrupt_event_node_t * dequeue_event_queue(simple_interrupt_event_queue_t *queue);
-
 void idle_task_main(task_t * task) {
 	_enable_interrupt();
 	while (1) { _io_hlt(); }
@@ -85,6 +81,7 @@ void switch_task(timer_t * timer) {
 
 	task_t * sched_task = g_ready_task_queue_head;
 	if (0 == sched_task) { // No any ready to run task, continue to run
+		k_printf("No new task in ready queue, continue the current task....");
 		k_set_timer_time(timer, 1000);
 		_set_eflags(eflags);
 		return;
@@ -328,7 +325,9 @@ simple_interrupt_event_node_t * dequeue_event_queue(simple_interrupt_event_queue
 }
 
 void process_keyboard_event(task_t * task, keyboard_event_t * process_keyboard_event) {
-
+	char msg[256];
+	k_sprintf(msg, "A key code %x is fired", process_keyboard_event->data);
+	k_printf(msg);
 }
 
 void process_mouse_event(task_t * task, mouse_event_t * p_mouse_event) {

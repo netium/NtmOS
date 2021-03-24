@@ -89,4 +89,7 @@ void initial_task_event_queue(simple_interrupt_event_queue_t * event_queue);
 
 task_t * initial_tasks();
 
+int enqueue_event_queue(simple_interrupt_event_queue_t *queue, simple_interrupt_event_node_t *p_node);
+
+simple_interrupt_event_node_t * dequeue_event_queue(simple_interrupt_event_queue_t *queue);
 #endif

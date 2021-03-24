@@ -89,9 +89,6 @@ get_kernel_start_cluster_id:
 
 .load_kernel_to_mem_loop:
     MOV ax, dx                              ; Copy start cluster id from DX to AX
-    push ax
-    call display_word
-    pop ax
     ADD ax, 1 + 9 * 2 + (224 * 32) / 512 - 2   ; Calculate the real sector
     CALL read_sector                        ; Read sector
     MOV ax, dx                              ; Copy start cluster id from DX to AX
