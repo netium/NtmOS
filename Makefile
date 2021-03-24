@@ -72,7 +72,7 @@ serial_port.o: serial_port.h serial_port.c
 	$(CC) $(CCFLAGS) serial_port.c -c -o serial_port.o
 
 tasks.o: tasks.h tasks.c
-	$(CC) $(CCFLAGS) tasks.c -c -o tss.o
+	$(CC) $(CCFLAGS) tasks.c -c -o tasks.o
 
 clean:
 	rm *.sys *.img *.o testapp

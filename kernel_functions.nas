@@ -23,6 +23,9 @@ GLOBAL _set_tr
 
 GLOBAL _switch_task
 
+GLOBAL _panic
+GLOBAL _putchar
+
 section .text
 
 _io_hlt:
@@ -111,4 +114,17 @@ _set_tr:
 
 _switch_task:
 	JMP FAR [esp + 4]
+	RET
+
+_panic:	
+.panic_loop:
+	HLT
+	JMP .panic_loop
+
+_putchar:
+	MOV eax, [esp + 4]
+	MOV ecx, 0xB8000
+	MOV BYTE[ecx], al
+	INC ecx
+	MOV BYTE[ecx], 0x0B
 	RET

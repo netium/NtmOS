@@ -1,9 +1,10 @@
 ; Author: Bo Zhou (zb.public@outlook.com)
 ; Under GPLv2.0 lincense
+[map symbols ntmio.sys.map]
 
 %include "macro16.nas"
 
-SP_TOP EQU 0x7c00	; To define the address of top of the stack
+SP_TOP EQU 0x7c00 - 4	; To define the address of top of the stack
 START_MEM_ADDR EQU 0x07E00	; The start address of the code in memory
 NUM_OF_HEAD EQU 2
 SECTORS_PER_TRACK EQU 18
@@ -15,13 +16,14 @@ KERNEL_FILE_BASE_MEM_ADDR EQU 0xa000
 
 MBR_BASE_MEM_ADDR EQU 0x07C00
 FAT_BASE_MEM_ADDR EQU 0x500
-ROOT_DIR_BASE_MEM_ADDR EQU FAT_BASE_MEM_ADDR + (9 * 0x200)
+ROOT_DIR_BASE_MEM_ADDR EQU FAT_BASE_MEM_ADDR + (SECTORS_PER_FAT * 0x200)
 
 ORG START_MEM_ADDR
 
 XOR ax, ax
 MOV ss, ax
 MOV ds, ax
+MOV es, ax
 MOV sp, SP_TOP
 MOV bx, os_hello_message
 CALL display_message
@@ -31,34 +33,33 @@ reset_drive 0x00
 ; Load FAT section
 load_fat:
     MOV bx, FAT_BASE_MEM_ADDR 
-    XOR ax, ax
-    MOV es, ax
     MOV cx, SECTORS_PER_FAT
     MOV ax, 1 
-    CALL read_sector
+.load_fat_loop:
     CMP cx, 0
     JE load_root_dir
+    CALL read_sector
     DEC cx
+    INC ax
     ADD bx, 0x200   ; Advanced the address in BX by 512 bytes
-    jmp load_fat
+    jmp .load_fat_loop
 
 load_root_dir:
 ; Load Root section
     MOV bx, ROOT_DIR_BASE_MEM_ADDR
-    XOR ax, ax
     MOV cx, SECTORS_FOR_ROOT_DIR
     MOV ax, 1 + (2 * SECTORS_PER_FAT) 
+.load_root_dir_loop:
+    cmp cx, 0
+    JE load_kernel_file
     CALL read_sector
-    CMP cx, 0
-    JE load_kernel_file 
     DEC cx
+    INC ax
     ADD bx, 0x200
-    jmp load_root_dir
+    jmp .load_root_dir_loop
 
 load_kernel_file:
     XOR ax, ax
-    MOV ds, ax
-    MOV es, ax
     MOV dx, 224
     MOV ax, ROOT_DIR_BASE_MEM_ADDR
 .read_one_entry:
@@ -80,6 +81,7 @@ get_kernel_start_cluster_id:
     ; Don't display, bug in display_message to overwrite the register
     ; MOV bx, kernel_file_found_message
     ; CALL display_message
+
     MOV bp, ax
     MOV bx, KERNEL_FILE_BASE_MEM_ADDR
     MOV dx, WORD[bp+26] ; read start cluster id
@@ -87,6 +89,9 @@ get_kernel_start_cluster_id:
 
 .load_kernel_to_mem_loop:
     MOV ax, dx                              ; Copy start cluster id from DX to AX
+    push ax
+    call display_word
+    pop ax
     ADD ax, 1 + 9 * 2 + (224 * 32) / 512 - 2   ; Calculate the real sector
     CALL read_sector                        ; Read sector
     MOV ax, dx                              ; Copy start cluster id from DX to AX
@@ -104,9 +109,19 @@ get_kernel_start_cluster_id:
     JA init_gdt 
     MOV dx, ax
     ADD bx, 0x200
+    CMP bx, 0x0
+    JNE .load_kernel_to_mem_loop
+    ; If BX = 0x0, then it means offset overflow, so need to advance the ES
+    PUSH ax
+    MOV ax, es
+    ADD ax, 0x1000
+    MOV es, ax
+    POP ax
     JMP .load_kernel_to_mem_loop
 
 init_gdt:
+    XOR ax, ax
+    MOV es, ax
     MOV bx, kernel_file_load_complete
     CALL display_message
 
@@ -213,6 +228,69 @@ display_message:
     popa
     RET
 
+display_char:
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    mov ax, word [bp + 4]
+    mov ah, 0x0e
+    mov bx, 15
+    int 10h
+    pop bx
+    pop ax
+    pop bp
+    ret
+
+display_word:
+    push bp
+    mov bp, sp
+    push ax
+    push bx
+    push si
+    mov bx, word [bp + 4]
+    mov ax, bx
+    shr ax, 12
+    and ax, 0xF
+    MOV si, ax
+    MOV al, BYTE HEX_CHAR_SET[si]
+    XOR ah, ah
+    push ax
+    call display_char
+    pop ax
+    mov ax, bx
+    shr ax, 8
+    and ax, 0xF
+    mov si, ax
+    MOV al, BYTE HEX_CHAR_SET[si]
+    xor ah, ah
+    push ax
+    call display_char
+    pop ax
+    mov ax, bx,
+    shr ax, 4
+    and ax, 0xF
+    mov si, ax
+    MOV al, BYTE HEX_CHAR_SET[si]
+    xor ah, ah
+    push ax
+    call display_char
+    pop ax
+    mov ax, bx,
+    shr ax, 0
+    and ax, 0xF
+    mov si, ax
+    MOV al, BYTE HEX_CHAR_SET[si]
+    xor ah, ah
+    push ax
+    call display_char
+    pop ax
+    pop si
+    pop bx
+    pop ax
+    pop bp
+    ret
+
 ; Read a sector to target memory address
 ; Parameters:
 ;   - AX: Sector LBA
@@ -220,6 +298,7 @@ display_message:
 ; Return:
 ;   - No return value
 read_sector:
+  push cx
   xor     cx, cx                      ; Set try count = 0
  
 .read_a_sec:
@@ -269,6 +348,7 @@ read_sector:
   pop     cx                          ; Discard try number
   pop     ax                          ; Get logical block from stack
   pop dx
+  pop cx
   ret
  
   ; The read has failed.
@@ -294,6 +374,8 @@ read_sector:
 
 BITS_PER_BYTE DB 8
 BITS_PER_FAT_ENTRY DB 12
+
+HEX_CHAR_SET DB '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 
 gdt DW 24
     DD 0x800

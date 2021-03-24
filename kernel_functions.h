@@ -33,5 +33,9 @@ void _set_tr(int tr);
 
 void _switch_task(int address, int tss_id);
 
+void _panic();
+
+void _putchar(int ch);
+
 #endif
 

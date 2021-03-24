@@ -8,20 +8,20 @@
 #include "serial_port.h"
 #include "tasks.h"
 
+/*
 extern layer_t * bg_window;
 extern layer_t * mouse_layer;
+*/
 
 void kernel_main(void) {
+
+	_io_cli();
 
 	int mem_size = mem_test();
 
 	kernel_relocate();
 
 	k_printf("Kernel protected mode intialization start...");
-
-	initial_interrupt_event_queue();
-
-	k_printf("Init interrupt event queue complete!");
 
 	initial_gdt();
 	initial_idt();
@@ -34,10 +34,6 @@ void kernel_main(void) {
 	initial_pic();
 
 	k_printf("Init programmable interrupt controller complete!");
-
-	_enable_interrupt();
-
-	k_printf("Enable interrupt");
 
 	initial_keyboard();
 
@@ -64,8 +60,11 @@ void kernel_main(void) {
 
 	k_printf("Kernel is running......");
 
-	initial_tasks();
+	task_t * current_task = initial_tasks();
 
+	task_main(current_task);
+
+	/*
 	while (1) {
 		_io_cli();	// Temporarily disable the interrupt, to prevent system from re-entry the manipulation of the event queue
 		simple_interrupt_event_node_t *node = dequeue_event_queue();
@@ -90,6 +89,7 @@ void kernel_main(void) {
 			k_free(node);
 		}
 	}
+	*/
 
 	// Done remove this statement, as it will casue the kernel main fucntion to return, 
 	// and as this function is the entry point for kernel execution file, it will make let the function return back to an random address
@@ -98,3 +98,4 @@ void kernel_main(void) {
 
 	return;
 }
+

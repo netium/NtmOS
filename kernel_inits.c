@@ -14,8 +14,6 @@
 #define N_GDT_ENTRIES 24
 #define N_IDT_ENTRIES 256
 
-static simple_interrupt_event_queue_t g_event_queue;
-
 static unsigned char mouse_buf[3];
 static int mouse_dx = 0, mouse_dy = 0, mouse_button = 0;
 
@@ -32,9 +30,6 @@ void kernel_relocate() {
 }
 
 void initial_gdt() {
-    int eflags = _get_eflags();
-    _disable_interrupt();
-
     gdt_entry_t *p_gdt_entries = GDT_TABLE_START_ADDR;
 
     p_gdt_entries[0].dwords[0] = 0x0;
@@ -51,18 +46,15 @@ void initial_gdt() {
         p_gdt_entries[i].dwords[1] = 0x0;
     }
 
-
-
     gdtr_t gdtr;
     gdtr.n_entries = (N_GDT_ENTRIES << 3) - 1;
     gdtr.p_start_addr = GDT_TABLE_START_ADDR;
     _load_gdt(gdtr);
-
-    _set_eflags(eflags);
 }
 
 int set_tss_into_gdt(unsigned int slot, void *base_addr, unsigned int limit) {
     if (slot >= 8192) return -1;
+
     gdt_entry_t *entry = ((gdt_entry_t *)GDT_TABLE_START_ADDR) + slot;
     entry->fields.base_low_word = (unsigned int)base_addr & 0xFFFF;
     entry->fields.base_mid_byte = ((unsigned int)base_addr >> 16) & 0xFF;
@@ -72,12 +64,11 @@ int set_tss_into_gdt(unsigned int slot, void *base_addr, unsigned int limit) {
     entry->fields.access.access_byte = 0x89;
     entry->fields.gr = 0x0;
     entry->fields.sz = 0x1;
+
+    return 0;
 }
 
 void initial_idt() {
-
-    int eflags = _get_eflags();
-    _disable_interrupt();
 
     idt_entry_t *p_idt_entries = IDT_TABLE_START_ADDR;
 
@@ -98,7 +89,7 @@ void initial_idt() {
     idtr.n_entries = N_IDT_ENTRIES << 3;
     idtr.p_start_addr = IDT_TABLE_START_ADDR;
     _load_idt(idtr);
-    _set_eflags(eflags);
+
 }
 
 void initial_pic() {
@@ -211,127 +202,10 @@ void set_interrupt(int interrupt_id, int code_seg_selector, void *p_handler, int
     _set_eflags(eflags);
 }
 
-void initial_interrupt_event_queue() {
-    g_event_queue.head = g_event_queue.nodes;
-    g_event_queue.tail = g_event_queue.nodes;
-    g_event_queue.full = 0;
-}
-
-int enqueue_event_queue(simple_interrupt_event_node_t *p_node) {
-    if (g_event_queue.full)
-        return -1;
-
-    g_event_queue.nodes[g_event_queue.tail++] = p_node;
-
-    if (g_event_queue.tail >= (sizeof(g_event_queue.nodes) / sizeof (g_event_queue.nodes[0])))
-        g_event_queue.tail = 0;
-
-    if (g_event_queue.head == g_event_queue.tail)
-        g_event_queue.full = 1;
-
-    return 0;
-}
-
-simple_interrupt_event_node_t * dequeue_event_queue() {
-    if ((g_event_queue.head == g_event_queue.tail) && (g_event_queue.full == 0)) 
-        return 0; // means the queue is empty
-
-    simple_interrupt_event_node_t * node = g_event_queue.nodes[g_event_queue.head++];
-
-    if (g_event_queue.head >= (sizeof(g_event_queue.nodes) / sizeof(g_event_queue.nodes[0])))
-        g_event_queue.head = 0;
-
-    g_event_queue.full = 0;
-
-    return node;
-}
-
 void wait_keyboard_send_ready(void) {
     while (1) {
         if ((_io_in8(PORT_KB_STATUS) & 0x02) == 0) {
             break;
         }
     }
-}
-
-void process_keyboard_event(keyboard_event_t * process_keyboard_event) {
-}
-
-void process_mouse_event(mouse_event_t * p_mouse_event) {
-    int data = p_mouse_event->data;
-    switch (raw_mouse_state_machine) {
-        case 0:
-            if (0xfa == data) raw_mouse_state_machine = 1;
-            break;
-        case 1:
-            if ((data & 0xc8) == 0x08) {
-                mouse_buf[0] = data;
-                raw_mouse_state_machine = 2;
-            }
-            break;
-        case 2:
-            mouse_buf[1] = data;
-            raw_mouse_state_machine = 3;
-            break;
-        case 3:
-            mouse_buf[2] = data;
-            raw_mouse_state_machine = 1;
-            mouse_button = mouse_buf[0] & 0x07;
-            mouse_dx = mouse_buf[1];
-            mouse_dy = mouse_buf[2];
-            if ((mouse_buf[0] & 0x10) != 0) {
-                mouse_dx |= 0xffffff00;
-            }
-            if ((mouse_buf[0] & 0x20) != 0) {
-                mouse_dy |= 0xffffff00;
-            }
-            mouse_dy = - mouse_dy;
-            // move_mouse(mouse_dx, mouse_dy);
-            break;
-        default:
-            break;
-    }
-}
-
-void process_timer_event(timer_event_t * p_timer_event) {
-    if (0 == p_timer_event) return;
-
-    if (0 != p_timer_event->p_timer->pf) {
-        p_timer_event->p_timer->pf(p_timer_event->p_timer);
-    }
-}
-
-void initial_tasks() {
-	g_tss3.ldtr = 0;
-	g_tss3.iopb_offset = 0x40000000;
-
-	g_tss4.ldtr = 0;
-	g_tss4.iopb_offset = 0x40000000;
-    g_tss4.eflags = 0x202;
-    g_tss4.eax = 0x0;
-    g_tss4.ebx = 0x0;
-    g_tss4.ecx = 0x0;
-    g_tss4.edx = 0x0;
-    g_tss4.ebp = 0x0;
-    g_tss4.esi = 0x0;
-    g_tss4.edi = 0x0;
-    g_tss4.cs = 0x1 << 3;
-    g_tss4.ds = 0x2 << 3;
-    g_tss4.ss = 0x2 << 3;
-    g_tss4.es = 0x2 << 3;
-    g_tss4.fs = 0x2 << 3;
-    g_tss4.gs = 0x2 << 3;
-    g_tss4.esp = 16 * 1024 * 1024;
-    g_tss4.eip = (unsigned int)task_main;
-
-    set_tss_into_gdt(3, &g_tss3, sizeof(g_tss3));
-    set_tss_into_gdt(4, &g_tss4, sizeof(g_tss4));
-
-    _set_tr(3 << 3);
-
-    current_task = &g_tss3;
-
-    g_task_switch_timer = k_timer_alloc();
-    k_init_timer(g_task_switch_timer, switch_task, 100);
-    k_set_timer_time(g_task_switch_timer, 1000);
 }
