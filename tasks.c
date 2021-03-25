@@ -4,6 +4,7 @@
 #include "interrupt_handlers.h"
 #include "kernel_inits.h"
 #include "k_heap.h"
+#include "synchron.h"
 
 #define GDT_TABLE_START_ADDR  ((void *)0x800
 
@@ -23,6 +24,8 @@ task_t * g_finished_task_queue = 0;
 task_t * g_io_blocked_task_queue_head = 0;
 
 timer_t * g_task_switch_timer = 0;
+
+static volatile int g_next_task_id = 1;
 
 int set_task_into_gdt(unsigned int slot, void *base_addr, unsigned int limit);
 
@@ -126,7 +129,12 @@ void switch_task(timer_t * timer) {
 
 task_t * task_alloc() {
 	task_t * task = k_malloc(sizeof(task_t));
-	if (0 != task) task->status = TASK_ALLOC;
+	if (0 != task) { 
+		task->status = TASK_ALLOC;
+		task->task_id = g_next_task_id;
+		_atom_inc(&g_next_task_id);
+	}
+
 	return task;
 }
 

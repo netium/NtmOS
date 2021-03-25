@@ -26,6 +26,8 @@ GLOBAL _switch_task
 GLOBAL _panic
 GLOBAL _putchar
 
+GLOBAL _atom_inc
+
 section .text
 
 _io_hlt:
@@ -127,4 +129,10 @@ _putchar:
 	MOV BYTE[ecx], al
 	INC ecx
 	MOV BYTE[ecx], 0x0B
+	RET
+
+_atom_inc:
+	MOV ecx, dword [esp + 4]
+	LOCK INC dword [ecx]
+	MOV eax, dword [ecx]
 	RET

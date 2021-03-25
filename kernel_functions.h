@@ -37,5 +37,7 @@ void _panic();
 
 void _putchar(int ch);
 
+int _atom_inc(int *p);
+
 #endif
 
