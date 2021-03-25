@@ -62,6 +62,13 @@ void kernel_main(void) {
 
 	task_t * current_task = initial_tasks();
 
+	task_t * new_task = task_alloc();
+	task_init(new_task, 8192, 8192);
+	start_task(new_task, task_main);
+	char msg[256];
+	k_sprintf(msg, "New task %x added", (unsigned int)new_task);
+	k_printf(msg);
+
 	task_main(current_task);
 
 	/*

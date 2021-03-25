@@ -30,6 +30,7 @@ void idle_task_main(task_t * task);
 void task_main(task_t * task);
 void initial_idle_task();
 unsigned int initial_default_task();
+void put_task_to_ready(task_t * task);
 
 void process_keyboard_event(task_t * task, keyboard_event_t * process_keyboard_event);
 
@@ -43,6 +44,10 @@ void idle_task_main(task_t * task) {
 }
 
 void task_main(task_t * task) {
+	char msg[256];
+	k_sprintf(msg, "Task %x is started", (unsigned int)task);
+	k_printf(msg);
+
     _enable_interrupt();
 
 	while (1) {
@@ -109,6 +114,10 @@ void switch_task(timer_t * timer) {
 	g_current_task = sched_task;
 
     k_set_timer_time(timer, 1000);
+
+	char msg[256];
+	k_sprintf(msg, "Switch to task: %x at gdt %x", (unsigned int)sched_task, sched_task->tss_entry_id);
+	k_printf(msg);
 
 	_set_eflags(eflags);
 
@@ -186,12 +195,17 @@ void start_task(task_t * task, void * start_addr) {
 	if (0 == task || 0 == start_addr) return;
 	if (TASK_INIT != task->status) return;
 
-	task->tss->esp0 -= 4;
-	*(unsigned int *)task->tss->esp0 = (unsigned int)task;
+	// Push task control block pointer to the task stack
+	task->tss->esp -= 4;
+	*(unsigned int *)task->tss->esp = (unsigned int)task;
+
+	// Push fake return address to the task stack
+	task->tss->esp -= 4;
+	*(unsigned int *)task->tss->esp = (unsigned int)0;
 
 	task->tss->eip = (unsigned int)start_addr;
-	task->status = TASK_READY;
 
+	put_task_to_ready(task);
 }
 
 void put_task_to_ready(task_t * task) {
@@ -325,9 +339,6 @@ simple_interrupt_event_node_t * dequeue_event_queue(simple_interrupt_event_queue
 }
 
 void process_keyboard_event(task_t * task, keyboard_event_t * process_keyboard_event) {
-	char msg[256];
-	k_sprintf(msg, "A key code %x is fired", process_keyboard_event->data);
-	k_printf(msg);
 }
 
 void process_mouse_event(task_t * task, mouse_event_t * p_mouse_event) {

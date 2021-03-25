@@ -165,7 +165,7 @@ int k_sprintf(char *str, const char *fmt, ...) {
 
 	char buffer[256];
 
-	while ( ch = *fmt++) {
+	while ( ch = *fmt++ ) {
 		if ('%' == ch) {
 			switch (ch = *fmt++) {
 				case '%':
