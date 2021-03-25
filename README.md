@@ -2,7 +2,7 @@
 
 ## Introduction
 
-A very mini operating system, which is based on example of 「30日でできる！ OS自作入門」
+A very mini OS kernel, including the MBR boot sector, BL2 (ntmio.sys) and the kernel (kernel.sys).
 
 ## Build on Ubuntu
 

@@ -1,0 +1,4 @@
+== References ==
+
+1. Book 「30日でできる！ OS自作入門」
+2. https://wiki.osdev.org[]
