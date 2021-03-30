@@ -56,6 +56,7 @@ void task_main(task_t * task) {
 	while (1) {
 		_io_cli();	// Temporarily disable the interrupt, to prevent system from re-entry the manipulation of the event queue
 		simple_interrupt_event_node_t *node = dequeue_event_queue(&task->event_queue);
+
 		if (node == 0) {
 			_enable_interrupt_and_halt();
 		}
@@ -347,6 +348,7 @@ simple_interrupt_event_node_t * dequeue_event_queue(simple_interrupt_event_queue
 }
 
 void process_keyboard_event(task_t * task, keyboard_event_t * process_keyboard_event) {
+	tui_putchar(process_keyboard_event->data);
 }
 
 void process_mouse_event(task_t * task, mouse_event_t * p_mouse_event) {

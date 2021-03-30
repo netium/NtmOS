@@ -79,4 +79,6 @@ typedef enum {
 void tui_get_cursor_position(unsigned int *px, unsigned int *py);
 void tui_update_cursor(unsigned int x, unsigned int y);
 
+void tui_putchar(char ch);
+
 #endif

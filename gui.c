@@ -401,12 +401,14 @@ void scroll_up_tui_console(int nlines) {
     char * dest = text_vbuf;
     char * source = text_vbuf + (nlines * TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM);
 
+    // shift buffer up by 1 line
     for (int i = nlines; i < TUI_LINES; i++) {
         k_memcpy(dest, source, TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM);
         dest += TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM;
         source += TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM;
     }
 
+    // clean the last line in the buffer
     for (int i = TUI_LINES - nlines; i < TUI_LINES; i++) {
         k_memset(dest + i * TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM, 0, TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM);
     }
@@ -443,4 +445,23 @@ void tui_update_cursor(unsigned int x, unsigned int y) {
     _io_out8(0x3D5, (unsigned char) (p & 0xFF));
     _io_out8(0x3D4, 0x0E);
     _io_out8(0x3D5, (unsigned char) ((p >> 8) & 0xFF));
+}
+
+void tui_putchar(char ch) {
+    char *vbuf = text_vbuf;
+    if (ch == 0x0a) {
+        cursor_x = 0;
+    }
+    else if (ch == 0x0d) {
+        cursor_y += 1;
+    }
+    else {
+        vbuf[(cursor_y * TUI_COLUMNS + cursor_x) * TUI_BYTES_PER_CHAR_IN_VRAM] = ch;
+        vbuf[(cursor_y * TUI_COLUMNS + cursor_x) * TUI_BYTES_PER_CHAR_IN_VRAM + 1] = 0x0B;
+        if (ch == 0x0a) cursor_x = 0;
+
+        cursor_x++;
+    }    
+    if (cursor_x >= TUI_COLUMNS) {cursor_x = 0, cursor_y++;}
+    if (cursor_y >= TUI_LINES) { scroll_up_tui_console(1); }
 }

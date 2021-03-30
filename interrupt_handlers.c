@@ -16,6 +16,8 @@
 
 #include "k_timer.h"
 
+#include "keyboard.h"
+
 // Programmable internal timer interrrupt
 __attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
     _io_out8(PIC0_OCW2, 0x60);
@@ -68,11 +70,13 @@ __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
 
     unsigned char data = _io_in8(0x60);
 
+    unsigned char ch = (data <= 0xD8 ? g_keyboard_scancode_set_1[data].keychar : data);
+
     simple_interrupt_event_node_t *p_node = k_malloc(sizeof (simple_interrupt_event_node_t));
 
     if (p_node == 0) return;
 
-    p_node->type = 0, p_node->keyboard_event.data = data;
+    p_node->type = KEYBOARD_EVENT, p_node->keyboard_event.data = ch;
 
     int ret = enqueue_event_queue(&g_current_task->event_queue, p_node);
 }
@@ -97,7 +101,7 @@ __attribute__ ((interrupt)) void int2ch_handler(interrupt_frame_t *frame) {
 
     if (p_node == 0) return;
 
-    p_node->type = 1, p_node->mouse_event.data = data;
+    p_node->type = MOUSE_EVENT, p_node->mouse_event.data = data;
 
     int ret = enqueue_event_queue(&g_current_task->event_queue, p_node);
 
