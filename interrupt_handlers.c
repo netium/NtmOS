@@ -18,6 +18,10 @@
 
 #include "keyboard.h"
 
+__attribute__ ((interrupt)) void int00h_handler(interrupt_frame_t *frame, unsigned int error_code) {
+
+}
+
 // Programmable internal timer interrrupt
 __attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
     _io_out8(PIC0_OCW2, 0x60);
@@ -110,4 +114,8 @@ __attribute__ ((interrupt)) void int2ch_handler(interrupt_frame_t *frame) {
 
 __attribute__ ((interrupt)) void int27h_handler(interrupt_frame_t *frame) {
     _io_out8(PIC0_OCW2, 0x67);
+}
+
+__attribute__ ((interrupt)) void int40h_handler(interrupt_frame_t *frame) {
+    _enable_interrupt();    // It's for system call, so can enable interrupt
 }
