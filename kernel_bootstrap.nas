@@ -9,4 +9,5 @@ EXTERN kernel_main
 section .text
 
 kernel_boostrap_main:
+    MOV esp, 0x2ffff    ; Initial the stack pointer
     JMP kernel_main
