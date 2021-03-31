@@ -1,11 +1,14 @@
 #ifndef _KERNEL_INITS_H_
 #define _KERNEL_INITS_H_
 
+#include <stddef.h>
 #include "k_timer.h"
 
-#define IDT_TASK_GATE 0x5
-#define IDT_INTERRUPT_GATE 0xe
-#define IDT_TRAP_GATE 0xf
+typedef enum {
+    IDT_TASK_GATE = 0x5,
+    IDT_INTERRUPT_GATE = 0xe,
+    IDT_TRAP_GATE = 0xf
+} idt_gate_type_t;
 
 #define PIC0_ICW1		0x0020
 #define PIC0_OCW2		0x0020

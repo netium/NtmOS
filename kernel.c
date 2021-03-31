@@ -8,6 +8,7 @@
 #include "serial_port.h"
 #include "tasks.h"
 #include "keyboard.h"
+#include "synchron.h"
 
 /*
 extern layer_t * bg_window;
@@ -68,8 +69,8 @@ void kernel_main(void) {
 	task_init(new_task, 8192, 8192);
 	start_task(new_task, task_main);
 
-	k_sprintf(msg, "New task %x added", (unsigned int)new_task);
-	k_printf(msg);
+	k_sprintf(str, "New task %x added", (unsigned int)new_task);
+	k_printf(str);
 	*/
 
 	task_main(current_task);

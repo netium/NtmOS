@@ -1,11 +1,13 @@
 #ifndef _TSS_H_
 #define _TSS_H_
 
+#include <stddef.h>
 #include "k_timer.h"
 #include "kernel_inits.h"
 
 // refer to: https://wiki.osdev.org/Task_State_Segment
 typedef struct {
+    // __uint16_t link, rev1;
     unsigned short link, rev1;
     unsigned int esp0;
     unsigned short ss0, rev2;

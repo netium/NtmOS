@@ -34,9 +34,12 @@ ntmio.sys: ntmio.sys.o
 ntmio.sys.o: ntmio.sys.nas
 	$(ASM) -fbin ntmio.sys.nas -o ntmio.sys.o
 
-kernel.sys: kstring.o kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o interrupt_handlers.o k_heap.o serial_port.o k_timer.o tasks.o synchron.o keyboard.o
-	$(LD) kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o interrupt_handlers.o kstring.o k_heap.o serial_port.o k_timer.o tasks.o synchron.o keyboard.o -e kernel_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
+kernel.sys: kernel_bootstrap.o kstring.o kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o interrupt_handlers.o k_heap.o serial_port.o k_timer.o tasks.o synchron.o keyboard.o
+	$(LD) kernel_bootstrap.o kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o interrupt_handlers.o kstring.o k_heap.o serial_port.o k_timer.o tasks.o synchron.o keyboard.o -e kernel_bootstrap_main -m elf_i386 -o kernel.sys.tmp -Ttext 0xa000
 	objcopy -O binary -j.text -j.data -j.bss -j.rodata kernel.sys.tmp kernel.sys
+
+kernel_bootstrap.o: kernel_bootstrap.nas
+	$(ASM) kernel_bootstrap.nas -felf32 -o kernel_bootstrap.o
 
 testapp: hlt.o boot_main.o test_app.c
 	$(CC) $(CCFLAGS) test_app.c hlt.o boot_main.o -o testapp

@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include "kernel_inits.h"
 #include "kernel_types.h"
 #include "kernel_functions.h"

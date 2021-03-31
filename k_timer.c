@@ -19,7 +19,7 @@ void k_timer_free(timer_t * timer) {
     timer->flags = 0;
 }
 
-void k_init_timer(timer_t *timer, void (*p)(timer_t *), unsigned int data) {
+void k_init_timer(timer_t *timer, void (*p)(timer_t *), size_t data) {
     if (0 == timer) return;
     timer->data = data;
     timer->pf = p;

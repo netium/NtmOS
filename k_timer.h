@@ -1,6 +1,8 @@
 #ifndef _K_TIMER_H_
 #define _K_TIMER_H_
 
+#include <stddef.h>
+
 #define MAX_TIMERS (0x256)
 
 typedef enum {
@@ -28,7 +30,7 @@ timer_t * k_timer_alloc();
 
 void k_timer_free(timer_t * timer);
 
-void k_init_timer(timer_t *timer, void (*p)(timer_t *), unsigned int data);
+void k_init_timer(timer_t *timer, void (*p)(timer_t *), size_t data);
 
 void k_set_timer_time (timer_t *timer, unsigned long int timeout);
 

@@ -123,6 +123,9 @@ void switch_task(timer_t * timer) {
 	k_sprintf(msg, "Switch to task: %x at gdt %x", (unsigned int)sched_task, sched_task->tss_entry_id);
 	k_printf(msg);
 
+	k_itoa(sched_task->task_id, msg, 16);
+	k_printf(msg);
+
 	_set_eflags(eflags);
 
 	_switch_task(0, g_current_task->tss_entry_id << 3);
@@ -150,7 +153,7 @@ void task_free(task_t * task) {
 }
 
 void task_init(task_t * task, int data_size, int kern_stack_size) {
-	if (0 == task || TASK_ALLOC != task->status) return;
+	if (NULL == task || TASK_ALLOC != task->status) return;
 
 	// Currently not limit the data region
 	// task->data = k_malloc(data_size);
