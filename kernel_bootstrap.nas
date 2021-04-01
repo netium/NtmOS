@@ -26,12 +26,12 @@ call .get_eip
     jae .init 
 .move_kernel:    ; move kernel to 1M and then jump to there 
     cld          ; Setup the move direction
-    mov ecx, CODE_SIZE      
+    mov ecx, CODE_SIZE / 4      
     mov eax, CODE_TMP_PHY_ADDR
     mov esi, eax
     mov eax, CODE_PHY_ADDR
     mov edi, eax
-    rep movsb
+    rep movsd
 .jump_new_kernel_addr   ; After kernel moving, then need to jump to a new address of the kernel
     mov eax, CODE_PHY_ADDR
     push eax
