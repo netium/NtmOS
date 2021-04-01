@@ -4,7 +4,7 @@
 #define HEAP_BITMAP_SIZE (16384)
 #define HEAP_SIZE (PAGE_SIZE * HEAP_BITMAP_SIZE)
 
-static char* heap = ((char *)0x1000000);
+static char* heap = ((char *)0x300000);
 static int heap_alloc[HEAP_BITMAP_SIZE];
 
 void* k_malloc(unsigned int size) {
