@@ -9,9 +9,8 @@
 #include "serial_port.h"
 #include "k_timer.h"
 #include "tasks.h"
-
-#define IDT_TABLE_START_ADDR  ((void *)0x0)
-#define GDT_TABLE_START_ADDR  ((void *)0x800)
+#define IDT_TABLE_START_ADDR  ((void *)(KERN_BASE_VIR_ADDR + 0x0))
+#define GDT_TABLE_START_ADDR  ((void *)(KERN_BASE_VIR_ADDR + 0x800))
 #define N_GDT_ENTRIES 24
 #define N_IDT_ENTRIES 256
 

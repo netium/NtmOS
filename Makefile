@@ -35,7 +35,7 @@ ntmio.sys.o: ntmio.sys.nas
 	$(ASM) -fbin ntmio.sys.nas -o ntmio.sys.o
 
 kernel.sys: kernel_bootstrap.o kstring.o kernel.o kernel_inits.o kernel_functions.o k_vga.o gui.o interrupt_handlers.o k_heap.o serial_port.o k_timer.o tasks.o synchron.o keyboard.o mm.o
-	$(LD) kernel_bootstrap.o kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o interrupt_handlers.o kstring.o k_heap.o serial_port.o k_timer.o tasks.o synchron.o keyboard.o mm.o -e kernel_bootstrap_main -m elf_i386 -o kernel.sys.tmp -Ttext 0x100000
+	$(LD) kernel_bootstrap.o kernel.o kernel_inits.o kernel_functions.o gui.o k_vga.o interrupt_handlers.o kstring.o k_heap.o serial_port.o k_timer.o tasks.o synchron.o keyboard.o mm.o -e kernel_bootstrap_main -m elf_i386 -o kernel.sys.tmp -Ttext 0x80100000
 	objcopy -O binary -j.text -j.data -j.bss -j.rodata kernel.sys.tmp kernel.sys
 
 kernel_bootstrap.o: kernel_bootstrap.nas

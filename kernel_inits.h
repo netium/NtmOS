@@ -1,7 +1,7 @@
 #ifndef _KERNEL_INITS_H_
 #define _KERNEL_INITS_H_
 
-#include <stddef.h>
+#include "kern_basic.h" 
 #include "k_timer.h"
 
 typedef enum {
