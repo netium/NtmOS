@@ -6,7 +6,7 @@ CC = gcc
 DD = dd
 LD = ld
 
-CCFLAGS = -Wall -m32 -nolibc -nostdlib -nodefaultlibs -fno-pie -mmanual-endbr -fcf-protection=branch
+CCFLAGS = -Wall -m32 -nolibc -nostdlib -nodefaultlibs -fno-pie -mmanual-endbr -fcf-protection=branch -c
 
 # EDIMG = ./tools/edimg.exe
 
@@ -45,46 +45,46 @@ testapp: hlt.o boot_main.o test_app.c
 	$(CC) $(CCFLAGS) test_app.c hlt.o boot_main.o -o testapp
 
 kernel.o: kernel.c 
-	$(CC) $(CCFLAGS) kernel.c -c -o kernel.o
+	$(CC) $(CCFLAGS) kernel.c -o kernel.o
 
 k_heap.o: k_heap.c k_heap.h
-	$(CC) $(CCFLAGS) k_heap.c -c -o k_heap.o
+	$(CC) $(CCFLAGS) k_heap.c -o k_heap.o
 
 kernel_inits.o: kernel_inits.c kernel_inits.h
-	$(CC) $(CCFLAGS) kernel_inits.c -c -o kernel_inits.o
+	$(CC) $(CCFLAGS) kernel_inits.c -o kernel_inits.o
 
 kernel_functions.o: kernel_functions.nas
 	$(ASM) kernel_functions.nas -felf32 -o kernel_functions.o
 
 gui.o: gui.c gui.h
-	$(CC) $(CCFLAGS) gui.c -c -o gui.o
+	$(CC) $(CCFLAGS) gui.c -o gui.o
 
 k_timer.o: k_timer.c k_timer.h
-	$(CC) $(CCFLAGS) k_timer.c -c -o k_timer.o
+	$(CC) $(CCFLAGS) k_timer.c -o k_timer.o
 
 k_vga.o: k_vga.c k_vga.h
-	$(CC) $(CCFLAGS) k_vga.c -c -o k_vga.o
+	$(CC) $(CCFLAGS) k_vga.c -o k_vga.o
 
 interrupt_handlers.o: interrupt_handlers.c interrupt_handlers.h
-	$(CC) $(CCFLAGS) -mgeneral-regs-only -mno-red-zone interrupt_handlers.c -c -o interrupt_handlers.o
+	$(CC) $(CCFLAGS) -mgeneral-regs-only -mno-red-zone interrupt_handlers.c -o interrupt_handlers.o
 
 kstring.o: kstring.h kstring.c
-	$(CC) $(CCFLAGS) kstring.c -c -o kstring.o
+	$(CC) $(CCFLAGS) kstring.c -o kstring.o
 
 serial_port.o: serial_port.h serial_port.c
-	$(CC) $(CCFLAGS) serial_port.c -c -o serial_port.o
+	$(CC) $(CCFLAGS) serial_port.c -o serial_port.o
 
 tasks.o: tasks.h tasks.c
-	$(CC) $(CCFLAGS) tasks.c -c -o tasks.o
+	$(CC) $(CCFLAGS) tasks.c -o tasks.o
 
 synchron.o: synchron.h synchron.c
-	$(CC) $(CCFLAGS) synchron.c -c -o synchron.o
+	$(CC) $(CCFLAGS) synchron.c -o synchron.o
 
 keyboard.o: keyboard.h keyboard.c
-	$(CC) $(CCFLAGS) keyboard.c -c -o keyboard.o
+	$(CC) $(CCFLAGS) keyboard.c -o keyboard.o
 
 mm.o: mm.h mm.c
-	$(CC) $(CCFLAGS) mm.c -c -o mm.o
+	$(CC) $(CCFLAGS) mm.c -o mm.o
 
 clean:
 	rm *.sys *.img *.o testapp

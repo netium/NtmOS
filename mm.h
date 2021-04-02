@@ -1,40 +1,40 @@
 #ifndef _MM_H_
 #define _MM_H_
 
-#include <stddef.h>
+#include "kern_basic.h"
 
 typedef union {
-    unsigned int dword;
+    uint32_t dword;
     struct {
-        size_t P:1;
-        size_t R:1;
-        size_t U:1;
-        size_t W:1;
-        size_t D:1;
-        size_t A:1;
-        size_t :1;   // Reserved
-        size_t S:1;
-        size_t G:1;
-        size_t avail: 3;
-        size_t addr: 20
+        uint32_t P:1;
+        uint32_t R:1;
+        uint32_t U:1;
+        uint32_t W:1;
+        uint32_t D:1;
+        uint32_t A:1;
+        uint32_t :1;   // Reserved
+        uint32_t S:1;
+        uint32_t G:1;
+        uint32_t avail: 3;
+        uint32_t addr: 20;
     };
 } page_directory_entry_t;
 
 
 typedef union {
-    unsigned int dword;
+    uint32_t dword;
     struct {
-        size_t P:1;
-        size_t R:1;
-        size_t U:1;
-        size_t W:1;
-        size_t C:1;
-        size_t A:1;
-        size_t D:1;   // Reserved
-        size_t :1;
-        size_t G:1;
-        size_t avail: 3;
-        size_t addr: 20
+        uint32_t P:1;
+        uint32_t R:1;
+        uint32_t U:1;
+        uint32_t W:1;
+        uint32_t C:1;
+        uint32_t A:1;
+        uint32_t D:1;   // Reserved
+        uint32_t :1;
+        uint32_t G:1;
+        uint32_t avail: 3;
+        uint32_t addr: 20;
     }; 
 } page_entry_t;
 
