@@ -30,14 +30,6 @@ GLOBAL _atom_inc
 
 section .text
 
-_io_hlt:
-	HLT ;	This command will cause 'sgemental error' if this function is called in the 32bit userspace as it's privilleged command
-	RET
-
-_io_cli:
-	CLI
-	RET
-
 _io_out8:
 	MOV edx, [esp+4]
 	MOV eax, [esp+8]
@@ -95,19 +87,6 @@ _load_gdt:
 
 _load_idt:
 	LIDT [esp+4]
-	RET
-
-_disable_interrupt:
-	CLI
-	RET
-
-_enable_interrupt:
-	STI
-	RET
-
-_enable_interrupt_and_halt:
-	STI
-	HLT
 	RET
 
 _set_tr:

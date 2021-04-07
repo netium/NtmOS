@@ -34,7 +34,7 @@ void k_set_timer_time (timer_t *timer, unsigned long int timeout) {
     timer->flags = TIMER_USING;
 
     e = _get_eflags();
-    _io_cli();
+    cli();
 
     timer_t ** pp_next = &g_timer_control.next;
 

@@ -42,8 +42,8 @@ void process_mouse_event(task_t * task, mouse_event_t * p_mouse_event);
 void process_timer_event(task_t * task, timer_event_t * p_timer_event);
 
 void idle_task_main(task_t * task) {
-	_enable_interrupt();
-	while (1) { _io_hlt(); }
+	sti();
+	while (1) { halt(); }
 }
 
 void task_main(task_t * task) {
@@ -51,17 +51,17 @@ void task_main(task_t * task) {
 	k_sprintf(msg, "Task %x is started", (unsigned int)task);
 	k_printf(msg);
 
-    _enable_interrupt();
+    sti();
 
 	while (1) {
-		_io_cli();	// Temporarily disable the interrupt, to prevent system from re-entry the manipulation of the event queue
+		cli();	// Temporarily disable the interrupt, to prevent system from re-entry the manipulation of the event queue
 		simple_interrupt_event_node_t *node = dequeue_event_queue(&task->event_queue);
 
 		if (node == 0) {
-			_enable_interrupt_and_halt();
+			sti_halt();
 		}
 		else {
-			_enable_interrupt();
+			sti();
 			switch (node->type) {
 				case KEYBOARD_EVENT:
 					process_keyboard_event(task, &(node->keyboard_event));
@@ -82,7 +82,7 @@ void task_main(task_t * task) {
 
 void switch_task(timer_t * timer) {
     int eflags = _get_eflags();
-    _io_cli();
+    cli();
     k_printf("Start to switch process...");
 	task_t * cur_task = g_current_task;
 	unsigned int tss_id = cur_task->tss_entry_id;

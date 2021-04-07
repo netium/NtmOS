@@ -60,7 +60,7 @@ __attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
     }
 
     if (1 == time_to_switch_task) {
-        _enable_interrupt();
+        sti();
         g_task_switch_timer->pf(g_task_switch_timer);
     }
 }
@@ -117,5 +117,5 @@ __attribute__ ((interrupt)) void int27h_handler(interrupt_frame_t *frame) {
 }
 
 __attribute__ ((interrupt)) void int40h_handler(interrupt_frame_t *frame) {
-    _enable_interrupt();    // It's for system call, so can enable interrupt
+    sti();    // It's for system call, so can enable interrupt
 }

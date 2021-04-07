@@ -17,7 +17,7 @@ extern layer_t * mouse_layer;
 
 void kernel_main(void) {
 
-	_io_cli();
+	cli();
 
 	int mem_size = mem_test();
 
@@ -78,7 +78,7 @@ void kernel_main(void) {
 	// Done remove this statement, as it will casue the kernel main fucntion to return, 
 	// and as this function is the entry point for kernel execution file, it will make let the function return back to an random address
 	// and cause the virtual machine to complain about the crash.
-	while(1) _io_hlt();
+	while(1) halt();
 
 	return;
 }

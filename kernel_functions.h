@@ -4,9 +4,6 @@
 
 #include "kernel_types.h"
 
-void _io_hlt(void);
-void _io_cli(void);
-
 void _io_out8(int port, int data);
 void _io_out16(int port, int data);
 void _io_out32(int port, int data);
@@ -38,6 +35,22 @@ void _panic();
 void _putchar(int ch);
 
 int _atom_inc(volatile int *p);
+
+#define cli() do { \
+        __asm__ inline volatile ("cli"); \
+    } while (0) 
+
+#define sti() do { \
+        __asm__ inline volatile ("sti"); \
+    } while (0) 
+
+#define sti_halt() do {\
+        __asm__ inline volatile ("sti \n hlt"); \
+    } while (0)
+
+#define halt() do { \
+        __asm__ inline volatile ("hlt \n "); \
+    } while (0)
 
 #endif
 
