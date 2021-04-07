@@ -54,5 +54,9 @@ void _putchar(int ch);
         __asm__ inline volatile ("lock incl %[v]":[v] "+m" (a)); \
 } while (0)
 
+#define jump_task(a) do { \
+        __asm__ inline volatile ("ljmp %[a]"::[a] "m" (a)); \
+    } while (0)
+
 #endif
 
