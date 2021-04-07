@@ -109,9 +109,3 @@ _putchar:
 	INC ecx
 	MOV BYTE[ecx], 0x0B
 	RET
-
-_atom_inc:
-	MOV ecx, dword [esp + 4]
-	LOCK INC dword [ecx]
-	MOV eax, dword [ecx]
-	RET

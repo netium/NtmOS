@@ -34,8 +34,6 @@ void _panic();
 
 void _putchar(int ch);
 
-int _atom_inc(volatile int *p);
-
 #define cli() do { \
         __asm__ inline volatile ("cli"); \
     } while (0) 
@@ -51,6 +49,10 @@ int _atom_inc(volatile int *p);
 #define halt() do { \
         __asm__ inline volatile ("hlt \n "); \
     } while (0)
+
+#define atom_inc(a) do { \
+        __asm__ inline volatile ("lock incl %[v]":[v] "+m" (a)); \
+} while (0)
 
 #endif
 

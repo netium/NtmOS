@@ -136,7 +136,7 @@ task_t * task_alloc() {
 	if (0 != task) { 
 		task->status = TASK_ALLOC;
 		task->task_id = g_next_task_id;
-		_atom_inc(&g_next_task_id);
+		atom_inc(g_next_task_id);
 	}
 
 	return task;
