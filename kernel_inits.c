@@ -49,7 +49,7 @@ void initial_gdt() {
     gdtr_t gdtr;
     gdtr.n_entries = (N_GDT_ENTRIES << 3) - 1;
     gdtr.p_start_addr = GDT_TABLE_START_ADDR;
-    _load_gdt(gdtr);
+    load_gdt(gdtr);
 }
 
 int set_tss_into_gdt(unsigned int slot, void *base_addr, unsigned int limit) {
@@ -90,8 +90,7 @@ void initial_idt() {
     idtr_t idtr;
     idtr.n_entries = N_IDT_ENTRIES << 3;
     idtr.p_start_addr = IDT_TABLE_START_ADDR;
-    _load_idt(idtr);
-
+    load_idt(idtr);
 }
 
 void initial_pic() {
@@ -183,8 +182,8 @@ void set_interrupt(int interrupt_id, int code_seg_selector, void *p_handler, int
     if (priv_level >= 4) return;
     if (p_handler == 0) enabled = 0;
 
-    int eflags = _get_eflags();
-
+    int eflags; // = _get_eflags();
+    get_eflags(eflags);
     // _io_cli();
 
     idt_entry_t *p_idt = 0x0;
@@ -201,7 +200,9 @@ void set_interrupt(int interrupt_id, int code_seg_selector, void *p_handler, int
 
     p_idt[interrupt_id].fields.selector = code_seg_selector << 3; 
 
-    _set_eflags(eflags);
+    set_eflags(eflags);
+
+    // _set_eflags(eflags);
 }
 
 void wait_keyboard_send_ready(void) {

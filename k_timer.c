@@ -33,7 +33,7 @@ void k_set_timer_time (timer_t *timer, unsigned long int timeout) {
     timer->timeout = timeout + g_timer_control.tick;
     timer->flags = TIMER_USING;
 
-    e = _get_eflags();
+    get_eflags(e);
     cli();
 
     timer_t ** pp_next = &g_timer_control.next;
@@ -43,5 +43,5 @@ void k_set_timer_time (timer_t *timer, unsigned long int timeout) {
     timer->next = *pp_next;
     *pp_next = timer;
 
-    _set_eflags(e); 
+    set_eflags(e); 
 }

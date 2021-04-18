@@ -81,7 +81,8 @@ void task_main(task_t * task) {
 }
 
 void switch_task(timer_t * timer) {
-    int eflags = _get_eflags();
+    int eflags; 
+	get_eflags(eflags);
     cli();
     k_printf("Start to switch process...");
 	task_t * cur_task = g_current_task;
@@ -92,7 +93,7 @@ void switch_task(timer_t * timer) {
 	if (0 == sched_task) { // No any ready to run task, continue to run
 		k_printf("No new task in ready queue, continue the current task....");
 		k_set_timer_time(timer, 1000);
-		_set_eflags(eflags);
+		set_eflags(eflags);
 		return;
 	}
 	else {	// Pick the first ready task out from the ready queue and adjust head & tail accordingly
@@ -126,7 +127,7 @@ void switch_task(timer_t * timer) {
 	k_itoa(sched_task->task_id, msg, 16);
 	k_printf(msg);
 
-	_set_eflags(eflags);
+	set_eflags(eflags);
 
 	_switch_task(0, g_current_task->tss_entry_id << 3);
 }

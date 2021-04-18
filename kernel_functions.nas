@@ -8,12 +8,6 @@ GLOBAL _io_out32
 GLOBAL _io_in8
 GLOBAL _io_in16
 GLOBAL _io_in32
-GLOBAL _get_eflags
-GLOBAL _set_eflags
-GLOBAL _load_gdt
-GLOBAL _load_idt
-GLOBAL _disable_interrupt
-GLOBAL _enable_interrupt
 
 GLOBAL _get_eip
 
@@ -66,27 +60,8 @@ _io_in32:
 	IN eax, dx
 	RET
 
-_get_eflags:
-	PUSHFD
-	POP eax
-	RET
-
-_set_eflags:
-	MOV eax, [esp+4]
-	PUSH eax
-	POPFD
-	RET
-
 _get_eip:
 	MOV eax, [esp]
-	RET
-
-_load_gdt:
-	LGDT [esp+4]
-	RET
-
-_load_idt:
-	LIDT [esp+4]
 	RET
 
 _set_tr:
