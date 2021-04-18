@@ -65,10 +65,10 @@ void _putchar(int ch);
 #endif
 
 #define get_eflags(a) do { \
-        __asm__ inline volatile ("pushfl\npopl %[v]":[v] "=am" (a)); \
+        __asm__ inline volatile ("pushfl\npopl %[v]":[v] "=rm" (a)); \
     } while (0)
 
 #define set_eflags(a) do { \
-        __asm__ inline volatile ("pushl %[v]\npopfl"::[v] "am" (a)); \
+        __asm__ inline volatile ("pushl %[v]\npopfl"::[v] "rm" (a)); \
     } while (0)
 
