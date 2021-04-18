@@ -1,4 +1,5 @@
 #include "kstring.h"
+#include <stddef.h>
 
 void* k_memcpy(void* destination, const void* source, size_t num) {
 	char* d = destination;
@@ -122,6 +123,11 @@ void * k_memrev(void *ptr, size_t num) {
 }
 
 void *k_itoa(int num, char* str, int base){
+	if (NULL == str) return NULL;
+	if (base > 16) base = 16;
+
+	static const char NUM_MAP[] = "0123456789ABCDEF";
+
 	int i = 0;
 	int is_neg = 0;
 
@@ -138,13 +144,13 @@ void *k_itoa(int num, char* str, int base){
 
 	while (num != 0) {
 		int r = num % base;
-		str[i++] = (r > 9) ? (r - 10) + 'A' : r + '0';
+		str[i++] = NUM_MAP[r];
 		num /= base;
 	}
 
 	if (is_neg) str[i++] = '-';
 
-	str[i] = 0x0;
+	str[i] = NULL;
 
 	k_memrev(str, i);
 
