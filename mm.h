@@ -38,4 +38,7 @@ typedef union {
     }; 
 } page_entry_t;
 
+unsigned long palloc();
+void pfree(unsigned long addr);
+
 #endif
