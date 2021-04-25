@@ -27,12 +27,12 @@ unsigned long palloc() {
 
 void pfree(unsigned long addr) {
     if (addr < LOW_MEM) return;
-    if (addr >= HIGH_MEM) panic();
+    if (addr >= HIGH_MEM) _panic();
     addr = (addr - LOW_MEM) >> PAGE_SIZE_BITS;
     if (page_frame_map[addr]--) return;
 
     // If reach here, then means that it's trying to free a page that are not in used, this is an error
     page_frame_map[addr] = 0;
-    panic();
+    _panic();
 }
 

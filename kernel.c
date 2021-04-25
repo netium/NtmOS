@@ -62,10 +62,10 @@ void kernel_main(void) {
 
 	k_printf("Kernel is running......");
 
-	task_t * current_task = initial_tasks();
+	process_t * current_task = initial_tasks();
 
 	/*
-	task_t * new_task = task_alloc();
+	process_t * new_task = task_alloc();
 	task_init(new_task, 8192, 8192);
 	start_task(new_task, task_main);
 
