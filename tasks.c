@@ -159,7 +159,8 @@ void task_init(process_t * task, int data_size, int kern_stack_size) {
 	task->kern_stack = k_malloc(kern_stack_size);
 	task->kern_stack_size = kern_stack_size;
 
-	task->pid = 0;
+	task->pid = g_next_task_id;
+	atom_inc(g_next_task_id);
 
 	task->tss_entry_id = 0;
 
@@ -186,7 +187,15 @@ void task_init(process_t * task, int data_size, int kern_stack_size) {
     task->tss.gs = 0x2 << 3;
     task->tss.esp = (unsigned int)(task->kern_stack) + task->kern_stack_size - 4;
     task->tss.eip = 0x0;		// Temporarily set to 0x0, but will overrided to the new task start address
-	
+
+	task->tss.esp0 = task->tss.esp;
+	task->tss.ss0 = task->tss.ss;
+
+	if (g_current_task > 0) 
+		task->ppid = g_current_task->pid;
+	else
+		task->ppid = 0;
+
 	task->status = TASK_INIT;
 }
 
@@ -297,7 +306,13 @@ unsigned int initial_default_task() {
     task->tss.gs = 0x2 << 3;
     task->tss.esp = 0;
     task->tss.eip = 0x0;
-	
+	task->tss.ss0 = task->tss.ss;
+	task->tss.esp0 = task->tss.esp;
+
+	task->ppid = 0;
+	task->pid = g_next_task_id;
+	atom_inc(g_next_task_id);
+
 	task->status = TASK_RUNNING;
 
 	g_current_task = task;
