@@ -353,6 +353,8 @@ simple_interrupt_event_node_t * dequeue_event_queue(simple_interrupt_event_queue
 
 void process_keyboard_event(task_t * task, keyboard_event_t * process_keyboard_event) {
 	tui_putchar(process_keyboard_event->data);
+	if (process_keyboard_event->data == 'A')
+		__asm__ inline volatile("int %0" ::"N"(0x40));
 }
 
 void process_mouse_event(task_t * task, mouse_event_t * p_mouse_event) {
