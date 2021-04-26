@@ -122,7 +122,7 @@ void switch_task(timer_t * timer) {
 	k_sprintf(msg, "Switch to task: %x at gdt %x", (unsigned int)sched_task, sched_task->tss_entry_id);
 	k_printf(msg);
 
-	k_itoa(sched_task->id, msg, 16);
+	k_itoa(sched_task->pid, msg, 16);
 	k_printf(msg);
 
 	set_eflags(eflags);
@@ -134,7 +134,7 @@ process_t * task_alloc() {
 	process_t * task = k_malloc(sizeof(process_t));
 	if (0 != task) { 
 		task->status = TASK_ALLOC;
-		task->id = g_next_task_id;
+		task->pid = g_next_task_id;
 		atom_inc(g_next_task_id);
 	}
 
@@ -159,7 +159,7 @@ void task_init(process_t * task, int data_size, int kern_stack_size) {
 	task->kern_stack = k_malloc(kern_stack_size);
 	task->kern_stack_size = kern_stack_size;
 
-	task->id = 0;
+	task->pid = 0;
 
 	task->tss_entry_id = 0;
 
@@ -269,7 +269,7 @@ unsigned int initial_default_task() {
 
 	task->kern_stack_size = 1024 * 1024;
 
-	task->id = 0;
+	task->pid = 0;
 
 	task->tss_entry_id = 0;
 

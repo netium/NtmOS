@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include "k_timer.h"
 #include "kernel_inits.h"
+#include "mm.h"
 
 // refer to: https://wiki.osdev.org/Task_State_Segment
 typedef struct {
@@ -48,10 +49,10 @@ typedef enum {
 typedef struct st_process_t process_t;
 
 typedef struct st_process_t {
-    unsigned long int id;   // process id
+    long pid;   // process pid
     process_status_t   status;  // process status
     simple_interrupt_event_queue_t event_queue;
-    unsigned int tss_entry_id;  // tss id in GDT
+    unsigned int tss_entry_id;  // tss pid in GDT
     void * data;        // base address of data stack segment
     unsigned int data_size;
     void * kern_stack;  // base address of kernel stack segment
@@ -59,6 +60,8 @@ typedef struct st_process_t {
     tss_t tss;
     process_t *next;
     void * console; // No used now, but will used for determine which task takes the current activate console
+    long ppid;  // parent process pid
+    page_directory_entry_t page_dir[1024];
 } process_t ;
 
 extern tss_t g_tss3, g_tss4;
