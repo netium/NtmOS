@@ -1,0 +1,24 @@
+= Design Docment
+
+This document is to describe the NtmOS Design
+
+== Running HW Assumption
+
+The NtmOS will assume the following hardware configuration:
+
+. x86-32 CPU
+. RAM >= 256MB
+. Floppy Disk
+
+== Memory Management
+
+Now in the implementation the paging is enabled, but due to making each process has its own page structure is a bit complex, so in current phase I decide that even though the paging is enabled, but I will make the processes to share the one global paging table. Base on this and to make the process protection, I will continue to use the segment to do the process memory isolation and protection.
+
+In this global paging mode, we will do the following virtual address to physical address mapping:
+
+[options="header", title="Memory Address Mapping"]
+|=========
+| Virtual Address Start Address | Virtual Address End Address | Physical Address Start Address | Physical Address End Address | Comment
+| 0x00000000 | 0x0FFFFFFF | 0x00000000 | 0x0FFFFFFF | The first physical 128MB RAM is identity page mapping
+| 0x80000000 | 0x87FFFFFF | 0x08000000 | 0x1FFFFFFF | The second physical 256MB RAM is mapped to kernel space 
+|=========
