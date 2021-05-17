@@ -118,4 +118,5 @@ __attribute__ ((interrupt)) void int27h_handler(interrupt_frame_t *frame) {
 
 __attribute__ ((interrupt)) void int40h_handler(interrupt_frame_t *frame) {
     sti();    // It's for system call, so can enable interrupt
+    k_printf("Int 40h triggered");
 }
