@@ -19,6 +19,6 @@ In this global paging mode, we will do the following virtual address to physical
 [options="header", title="Memory Address Mapping"]
 |=========
 | Virtual Address Start Address | Virtual Address End Address | Physical Address Start Address | Physical Address End Address | Comment
-| 0x00000000 | 0x0FFFFFFF | 0x00000000 | 0x0FFFFFFF | The first physical 128MB RAM is identity page mapping
-| 0x80000000 | 0x87FFFFFF | 0x08000000 | 0x1FFFFFFF | The second physical 256MB RAM is mapped to kernel space 
+| 0x00000000 | 0x07FFFFFF | 0x00000000 | 0x07FFFFFF | The first physical 128MB RAM is identity page mapping
+| 0x80000000 | 0x87FFFFFF | 0x08000000 | 0x0FFFFFFF | The second physical 256MB RAM is mapped to kernel space 
 |=========
