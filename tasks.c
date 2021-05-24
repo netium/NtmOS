@@ -6,7 +6,7 @@
 #include "k_heap.h"
 #include "synchron.h"
 
-#define GDT_TABLE_START_ADDR  ((void *)0x800
+#define GDT_TABLE_START_ADDR  ((void *) KERN_BASE_VIR_ADDR + 0x800)
 
 // We will have a idle task, this task will always use the GDT slot 3;
 // For other tasks, we will allocate the GDT slot dynamically

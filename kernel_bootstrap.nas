@@ -7,18 +7,19 @@ GLOBAL kernel_bootstrap_main
 EXTERN kernel_main
 
 KERN_BASE_VIR_ADDR EQU 0x80000000
-STACK_PHY_ADDR  EQU 0x300000
-STACK_VIR_ADDR  EQU (KERN_BASE_VIR_ADDR + STACK_PHY_ADDR)
-CODE_PHY_ADDR EQU 0x100000 
-CODE_VIR_ADDR EQU (KERN_BASE_VIR_ADDR + CODE_PHY_ADDR)
+KERN_BASE_PHY_ADDR EQU 0x08000000
+STACK_TMP_PHY_ADDR  EQU 0x300000
+STACK_VIR_ADDR  EQU (KERN_BASE_VIR_ADDR + 0x300000)
+CODE_PHY_ADDR EQU (KERN_BASE_PHY_ADDR + 0x100000)
+CODE_VIR_ADDR EQU (KERN_BASE_VIR_ADDR + 0x100000)
 CODE_TMP_PHY_ADDR EQU 0xa000
 CODE_SIZE EQU 0x96000
 MEM_PAGE_SIZE EQU 0x1000
 
-PAGE_DIR_ADDR EQU 0x1000
+PAGE_DIR_ADDR EQU (KERN_BASE_PHY_ADDR + 0x1000)
 PAGE_DIR_KERN_LINEAR_START_INDEX EQU 0x200
-PAGE_TAB_1_ADDR EQU 0x2000
-PAGE_TAB_200_ADDR EQU 0x3000
+PAGE_TAB_1_ADDR EQU (KERN_BASE_PHY_ADDR + 0x2000)
+PAGE_TAB_200_ADDR EQU (KERN_BASE_PHY_ADDR + 0x3000)
 
 section .text
 
@@ -26,7 +27,7 @@ section .text
 ; The only pity thing is that as it's currently in 32bit protect mode it cannot use 16bit BIOS interrupt anymore.
 kernel_bootstrap_main:
     ; If eip < 1M, then this means that the kernel is still in < 1MB RAM so we need to move it
-    mov esp, STACK_PHY_ADDR
+    mov esp, STACK_TMP_PHY_ADDR
 call .get_eip
 .get_eip:
     pop eax
@@ -71,7 +72,7 @@ call .get_eip
 .init_paging_200_tables:
     mov esi, PAGE_TAB_200_ADDR
     xor ecx, ecx
-    mov ebx, 0x1
+    mov ebx, KERN_BASE_PHY_ADDR + 0x1
 .init_paging_200_tables_loop:
     cmp ecx, 1024
     jae .enable_paging
@@ -97,6 +98,7 @@ call .get_eip
     or eax, 0x80000000
     mov cr0, eax
 .jump_new_kernel_addr   ; After kernel moving and paging enable, then need to jump to the virtual address of the kernel
+    mov esp, STACK_VIR_ADDR     ; Reinitialize the stack point to virtual memory address
     mov eax, CODE_VIR_ADDR
     push eax
     ret

@@ -7,5 +7,6 @@
 // typedef unsigned int size_t;
 
 #define KERN_BASE_VIR_ADDR ((size_t)0x80000000)
+#define KERN_BASE_PHY_ADDR ((size_t)0x08000000)
 
 #endif
