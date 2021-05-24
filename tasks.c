@@ -1,4 +1,5 @@
 #include "tasks.h"
+#include "kern_basic.h"
 #include "gui.h"
 #include "kernel_functions.h"
 #include "interrupt_handlers.h"
@@ -6,12 +7,11 @@
 #include "k_heap.h"
 #include "synchron.h"
 
-#define GDT_TABLE_START_ADDR  ((void *) KERN_BASE_VIR_ADDR + 0x800)
-
 // We will have a idle task, this task will always use the GDT slot 3;
 // For other tasks, we will allocate the GDT slot dynamically
 
-tss_t g_tss3, g_tss4;
+tss_t g_tss3 __attribute__ ((aligned (4)));
+tss_t g_tss4 __attribute__ ((aligned (4)));
 
 process_t * g_current_task = 0;
 process_t * g_idle_task = 0;
@@ -234,7 +234,7 @@ void put_task_to_ready(process_t * task) {
 int set_task_into_gdt(unsigned int slot, void *base_addr, unsigned int limit) {
     if (slot >= 8192) return -1;
 
-    gdt_entry_t *entry = ((gdt_entry_t *)GDT_TABLE_START_ADDR) + slot);
+    gdt_entry_t *entry = ((gdt_entry_t *)GDT_TABLE_START_ADDR + slot);
     entry->fields.base_low_word = (unsigned int)base_addr & 0xFFFF;
     entry->fields.base_mid_byte = ((unsigned int)base_addr >> 16) & 0xFF;
     entry->fields.base_high_byte = ((unsigned int)base_addr >> 24) & 0xFF;

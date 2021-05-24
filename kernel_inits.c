@@ -9,10 +9,6 @@
 #include "serial_port.h"
 #include "k_timer.h"
 #include "tasks.h"
-#define IDT_TABLE_START_ADDR  ((void *)(KERN_BASE_VIR_ADDR + 0x0))
-#define GDT_TABLE_START_ADDR  ((void *)(KERN_BASE_VIR_ADDR + 0x800))
-#define N_GDT_ENTRIES 24
-#define N_IDT_ENTRIES 256
 
 static unsigned char mouse_buf[3];
 static int mouse_dx = 0, mouse_dy = 0, mouse_button = 0;
