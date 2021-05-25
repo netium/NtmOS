@@ -16,10 +16,11 @@ CODE_TMP_PHY_ADDR EQU 0xa000
 CODE_SIZE EQU 0x96000
 MEM_PAGE_SIZE EQU 0x1000
 
-PAGE_DIR_ADDR EQU (KERN_BASE_PHY_ADDR + 0x1000)
+PAGE_DIR_ADDR EQU (KERN_BASE_PHY_ADDR + 0x300000)
 PAGE_DIR_KERN_LINEAR_START_INDEX EQU 0x200
 PAGE_TAB_1_ADDR EQU (KERN_BASE_PHY_ADDR + 0x2000)
 PAGE_TAB_200_ADDR EQU (KERN_BASE_PHY_ADDR + 0x3000)
+PAGE_TAB_201_ADDR EQU (KERN_BASE_PHY_ADDR + 0x4000)
 
 section .text
 
@@ -54,9 +55,12 @@ call .get_eip
     ; Setup the page_dir_entry[0], which refer to the first [0MB, 4MB) 
     mov esi, PAGE_DIR_ADDR
     mov dword [esi], (PAGE_TAB_1_ADDR & 0xFFFFF000) | 0x1
-    ; Setup the page_dir_entry[200H], which map the [2GB, 2GB+4MB] to [0MB, 4MB)
+    ; Setup the page_dir_entry[200H], which map the [2GB, 2GB+4MB] to [128MB, 128+4MB)
     mov ecx, PAGE_DIR_KERN_LINEAR_START_INDEX
     mov dword [esi + ecx * 4], (PAGE_TAB_200_ADDR & 0xFFFFF000) | 0x01
+    ; Setup the page_dir_entry[201H], which map the [2GB+4MB, 2GB+8MB] to [128+4MB, 128+8MB)
+    mov ecx, PAGE_DIR_KERN_LINEAR_START_INDEX + 1
+    mov dword [esi + ecx * 4], (PAGE_TAB_201_ADDR & 0xFFFFF000) | 0x01
 .init_paging_1_tables:
     mov esi, PAGE_TAB_1_ADDR
     xor ecx, ecx

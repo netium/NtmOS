@@ -19,9 +19,7 @@ void kernel_main(void) {
 
 	cli();
 
-	int mem_size = mem_test();
-
-	kernel_relocate();
+	initial_global_page_table();
 
 	k_printf("Kernel protected mode intialization start...");
 

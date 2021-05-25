@@ -17,12 +17,40 @@ static int raw_mouse_state_machine = 0;
 
 void wait_keyboard_send_ready(void);
 
-int mem_test() {
-    return 0;
-}
+void initial_global_page_table() {
+    page_directory_entry_t *pde_vir_start_addr = GPT_TABLE_START_ADDR;
 
-void kernel_relocate() {
-    return;
+    page_entry_t *pt_vir_start_addr = (page_entry_t*)((unsigned char *)GPT_TABLE_START_ADDR + 4096);
+
+    size_t pde_phy_start_addr = 0x08400000;
+    size_t pt_phy_start_addr = pde_phy_start_addr + PAGE_SIZE;
+
+    size_t pt_phy_addr = pt_phy_start_addr;
+
+    // Initial the first 32 page directory entries (to mapping to the first 128MB physical RAM)
+    for (int i = 0; i < 32; i++) {
+        pde_vir_start_addr[i].dword = (pt_phy_addr | 0x1);
+        pt_phy_addr += PAGE_SIZE;
+    }
+
+    size_t page_phy_addr = 0x0;
+    for (int i = 0; i < 32 * 1024; i++) {
+        pt_vir_start_addr[i].dword = (page_phy_addr | 0x1);
+        page_phy_addr += PAGE_SIZE;
+    }
+
+    // Initial the 512 -> (512+32) page directory entires 
+    pt_phy_addr = pt_phy_start_addr + 512 * sizeof(page_entry_t);
+    for (int i = 512; i < 512 + 32; i++) {
+        pde_vir_start_addr[i].dword = (pt_phy_addr | 0x1);
+        pt_phy_addr += PAGE_SIZE;
+    }
+
+    page_phy_addr = 0x08000000;
+    for (int i = 0; i < 32 * 1024; i++) {
+        pt_vir_start_addr[i + 512 * 1024].dword = (page_phy_addr | 0x01);
+        page_phy_addr += PAGE_SIZE;
+    }
 }
 
 void initial_gdt() {

@@ -3,6 +3,11 @@
 
 #include "kern_basic.h"
 
+#define N_PAGE_DIRECTORY_ENTRIES (1024)
+#define N_PAGE_TABLE_ENTRIES (1024)
+#define PAGE_SIZE (0x1000)      // 4096 byte per page
+#define PAGE_SIZE_BITS (12)
+
 typedef union {
     uint32_t dword;
     struct {

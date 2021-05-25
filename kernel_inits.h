@@ -66,8 +66,8 @@ typedef struct {
 
 void initial_interrupt_event_queue();
 
-int mem_test();
-void kernel_relocate();
+void initial_global_page_table();
+
 void initial_gdt();
 void initial_idt();
 
