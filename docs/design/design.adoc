@@ -12,6 +12,8 @@ The NtmOS will assume the following hardware configuration:
 
 == Memory Management
 
+=== Global Page Table
+
 Now in the implementation the paging is enabled, but due to making each process has its own page structure is a bit complex, so in current phase I decide that even though the paging is enabled, but I will make the processes to share the one global paging table. Base on this and to make the process protection, I will continue to use the segment to do the process memory isolation and protection.
 
 In this global paging mode, we will do the following virtual address to physical address mapping:
@@ -22,3 +24,35 @@ In this global paging mode, we will do the following virtual address to physical
 | 0x00000000 | 0x07FFFFFF | 0x00000000 | 0x07FFFFFF | The first physical 128MB RAM is identity page mapping
 | 0x80000000 | 0x87FFFFFF | 0x08000000 | 0x0FFFFFFF | The second physical 256MB RAM is mapped to kernel space 
 |=========
+
+=== Kernel Space Memory Layout 
+
+This section documents the kernel virtual space memory layout, the below table documents the layout:
+
+[options="header", title="Kernel Virtual Space Memory Layout"]
+|==========
+| Virtual Address Start Address | Size | Usage | Non-Swap | Comment
+| 0x80000000 | 1MB | IDT + GDT + LDT | true |  
+| 0x80100000 | 1MB | Kernel executable | true |
+| 0x80200000 | 1MB | Init kernel stack | true |
+| 0x80300000 | 1MB | Kernel heap | true | 
+| 0x80400000 | 8MB | Global page table | true |
+|==========
+
+I am still considering on how to fit the page frame bitmap into the kernel space table.
+
+NOTE: I may need to move the kernel heap to after the global page table so that it can have more space.
+
+Some of the table size:
+
+For the size of IDT table:  256 * 8 = 2048 = 2KB
+
+For the size of the GDT table:  8192 * 8 = 65536 = 64KB
+
+As we have 1MB for the memeory space of IDT+GDT+LDT, so in this region we can have sub memory layout as:
+
+[options="header", title="IDT + GDT + LDT Memory Region Layout"]
+|=========
+| Virtual Address Start Address | Size | Usage | Comment
+| 0x80000000 | 64KB | IDT | For IDT table, reserved 64KB, actually only the first 2KB are needed, with 256 IDT entries
+| 0x80010000 | 64KB | GDT | For GDT table, with 8192 GDT entries
