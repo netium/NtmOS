@@ -6,8 +6,6 @@
 
 #define LOW_MEM (0x4000000)
 #define HIGH_MEM (0x10000000)
-#define PAGE_SIZE (0x1000)      // 4096 byte per page
-#define PAGE_SIZE_BITS (12)
 
 #define N_PAGES (HIGH_MEM - LOW_MEM) / PAGE_SIZE
 
