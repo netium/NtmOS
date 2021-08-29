@@ -20,7 +20,7 @@ void kernel_main(void) {
 	cli();
 
 	// Temporarity comment out the following function as the kernel bootstrap code didn't create the identity mapping for the whole 0-256MB RAM space.
-	initial_global_page_table();
+	// initial_global_page_table();
 
 	k_printf("Kernel protected mode intialization start...");
 
@@ -46,12 +46,11 @@ void kernel_main(void) {
 
 	_io_out8(PIC0_IMR, 0xf8);	// enable PIT/PIC1/Keyboard
 
+
 	int i = initial_serial(COM1_PORT);
 
 	k_sprintf(str, "Init serial port COM1 with return value: %x", i);
 	k_printf(str);
-
-	// render_ui(bg_window);
 
 	initial_mouse();
 
@@ -71,6 +70,7 @@ void kernel_main(void) {
 	k_sprintf(str, "New task %x added", (unsigned int)new_task);
 	k_printf(str);
 	*/
+
 
 	task_main(current_task);
 

@@ -31,6 +31,8 @@ void _panic();
 
 void _putchar(int ch);
 
+void _load_page_table(void *page_directory_addr);
+
 #define cli() do { \
         __asm__ inline volatile ("cli"); \
     } while (0) 

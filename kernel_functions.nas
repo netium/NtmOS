@@ -22,6 +22,8 @@ GLOBAL _putchar
 
 GLOBAL _atom_inc
 
+GLOBAL _load_page_table
+
 section .text
 
 _io_out8:
@@ -84,3 +86,8 @@ _putchar:
 	INC ecx
 	MOV BYTE[ecx], 0x0B
 	RET
+
+_load_page_table:
+	MOV eax, [esp + 4]
+	MOV cr3, eax
+	RET 

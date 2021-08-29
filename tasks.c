@@ -47,9 +47,10 @@ void idle_task_main(process_t * task) {
 void task_main(process_t * task) {
 	char msg[256];
 	k_sprintf(msg, "Task %x is started", (unsigned int)task);
-	k_printf(msg);
 
-    sti();
+	// k_printf(msg);
+
+    	sti();
 
 	while (1) {
 		cli();	// Temporarily disable the interrupt, to prevent system from re-entry the manipulation of the event queue
@@ -116,7 +117,7 @@ void switch_task(timer_t * timer) {
 
 	g_current_task = sched_task;
 
-    k_set_timer_time(timer, 1000);
+	k_set_timer_time(timer, 1000);
 
 	char msg[256];
 	k_sprintf(msg, "Switch to task: %x at gdt %x", (unsigned int)sched_task, sched_task->tss_entry_id);
@@ -264,6 +265,8 @@ process_t * initial_tasks() {
 }
 
 void initial_idle_task() {
+	// temp comments: The following function will corrupt the virt mem page directory,
+	// it shall be be cause the heap has data over flow to the page directory area. 
 	process_t * idle_task = task_alloc();
 	if (0 == idle_task) _panic();
 	task_init(idle_task, 64 * 1024, 64 * 1024);

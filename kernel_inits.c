@@ -22,19 +22,19 @@ void initial_global_page_table() {
 
     page_entry_t *pt_vir_start_addr = (page_entry_t*)((unsigned char *)GPT_TABLE_START_ADDR + 4096);
 
-    size_t pde_phy_start_addr = 0x08400000;
+    size_t pde_phy_start_addr = KERN_BASE_PHY_ADDR + GPT_TABLE_START_ADDR;
     size_t pt_phy_start_addr = pde_phy_start_addr + PAGE_SIZE;
 
     size_t pt_phy_addr = pt_phy_start_addr;
 
-    // Initial the first 32 page directory entries (to mapping to the first 128MB physical RAM)
-    for (int i = 0; i < 32; i++) {
+    // Initial the first 32 page directory entries (to mapping to the whole 256MB physical RAM)
+    for (int i = 0; i < 0x40; i++) {
         pde_vir_start_addr[i].dword = (pt_phy_addr | 0x1);
         pt_phy_addr += PAGE_SIZE;
     }
 
     size_t page_phy_addr = 0x0;
-    for (int i = 0; i < 32 * 1024; i++) {
+    for (int i = 0; i < 0x40 * 1024; i++) {
         pt_vir_start_addr[i].dword = (page_phy_addr | 0x1);
         page_phy_addr += PAGE_SIZE;
     }
@@ -51,6 +51,8 @@ void initial_global_page_table() {
         pt_vir_start_addr[i + 512 * 1024].dword = (page_phy_addr | 0x01);
         page_phy_addr += PAGE_SIZE;
     }
+
+    _load_page_table((void *) pde_phy_start_addr);
 }
 
 void initial_gdt() {
@@ -210,7 +212,7 @@ void set_interrupt(int interrupt_id, int code_seg_selector, void *p_handler, int
     get_eflags(eflags);
     // _io_cli();
 
-    idt_entry_t *p_idt = 0x0;
+    idt_entry_t *p_idt = IDT_TABLE_START_ADDR;
 
     p_idt[interrupt_id].fields.offset_low_word = (unsigned int)(p_handler) & 0xFFFF;
     p_idt[interrupt_id].fields.offset_high_word = ((unsigned int)(p_handler) >> 16) & 0xFFFF;
