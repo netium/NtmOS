@@ -6,7 +6,7 @@ CC = gcc
 DD = dd
 LD = ld
 
-CCFLAGS = -Wall -m32 -nolibc -nostdlib -nodefaultlibs -fno-pie -mmanual-endbr -fcf-protection=branch -c
+CCFLAGS = -O0 -Wall -m32 -nolibc -nostdlib -nodefaultlibs -fno-pie -mmanual-endbr -fcf-protection=branch -c
 
 # EDIMG = ./tools/edimg.exe
 
