@@ -42,6 +42,7 @@ call .get_eip
     mov eax, CODE_PHY_ADDR
     mov edi, eax
     rep movsd
+
 ; Start to initialize the paging, but this is the very simple one, just to make sure that the kernel
 ; can run from the 2GB virtual address, and then kernel run into the kernel_main a full paging mechanism
 ; will be built up
@@ -52,38 +53,54 @@ call .get_eip
     mov edi, PAGE_DIR_ADDR
     mov ecx, 1024
     rep stosd
+
     ; Setup the page_dir_entry[0], which refer to the first [0MB, 4MB) 
+    mov ebx, (PAGE_TAB_1_ADDR & 0xFFFFF000) | 0x1
+    mov ecx, 0
+.loop_set_identity_mapping:
     mov esi, PAGE_DIR_ADDR
-    mov dword [esi], (PAGE_TAB_1_ADDR & 0xFFFFF000) | 0x1
-    ; Setup the page_dir_entry[200H], which map the [2GB, 2GB+4MB] to [128MB, 128+4MB)
+    mov dword [esi + ecx * 4], ebx
+    add ebx, MEM_PAGE_SIZE 
+    inc ecx
+    cmp ecx, 40h
+    jb .loop_set_identity_mapping 
+
+    ; Setup the page_dir_entry[200H], which map the [2GB, 2GB+128MB] to [128MB, 128+128MB)
+    mov ebx, (PAGE_TAB_200_ADDR & 0xFFFFF000) | 01
     mov ecx, PAGE_DIR_KERN_LINEAR_START_INDEX
-    mov dword [esi + ecx * 4], (PAGE_TAB_200_ADDR & 0xFFFFF000) | 0x01
-    ; Setup the page_dir_entry[201H], which map the [2GB+4MB, 2GB+8MB] to [128+4MB, 128+8MB)
-    mov ecx, PAGE_DIR_KERN_LINEAR_START_INDEX + 1
-    mov dword [esi + ecx * 4], (PAGE_TAB_201_ADDR & 0xFFFFF000) | 0x01
+.loop_set_kernel_mapping:
+    mov dword [esi + ecx * 4], ebx 
+    add ebx, MEM_PAGE_SIZE
+    inc ecx
+    cmp ecx, PAGE_DIR_KERN_LINEAR_START_INDEX + 80h
+    jb .loop_set_kernel_mapping
+
+.init_paging_identity_mapping_for_0_to_256MB
+
 .init_paging_1_tables:
     mov esi, PAGE_TAB_1_ADDR
     xor ecx, ecx
     mov ebx, 0x1
-.init_paging_1_tables_loop:
-    cmp ecx, 1024
+.init_paging_1h_to_40h_tables_loop:
+    cmp ecx, 1024 * 40h
     jae .init_paging_200_tables
     mov dword [esi + ecx * 4], ebx;
     ; add esi, 4
     add ebx, MEM_PAGE_SIZE
     inc ecx
-    jmp .init_paging_1_tables_loop
+    jmp .init_paging_1h_to_40h_tables_loop
+
 .init_paging_200_tables:
     mov esi, PAGE_TAB_200_ADDR
     xor ecx, ecx
     mov ebx, KERN_BASE_PHY_ADDR + 0x1
-.init_paging_200_tables_loop:
-    cmp ecx, 1024
+.init_paging_200h_to_240h_tables_loop:
+    cmp ecx, 1024 * 40h
     jae .enable_paging
     mov dword [esi + ecx * 4], ebx;
     add ebx, MEM_PAGE_SIZE
     inc ecx
-    jmp .init_paging_200_tables_loop
+    jmp .init_paging_200h_to_240h_tables_loop
     ; mov dword[eax], 
 ;.fill_page_table:
 ;    mov ecx, ebx

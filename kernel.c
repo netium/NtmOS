@@ -19,7 +19,8 @@ void kernel_main(void) {
 
 	cli();
 
-	initial_global_page_table();
+	// Temporarity comment out the following function as the kernel bootstrap code didn't create the identity mapping for the whole 0-256MB RAM space.
+	// initial_global_page_table();
 
 	k_printf("Kernel protected mode intialization start...");
 
