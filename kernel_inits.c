@@ -106,12 +106,14 @@ void initial_idt() {
         p_idt_entries[i].fields.attr = 0;
     }
 
-    set_interrupt(0x00, 0x01, int00h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
+    // set_interrupt(0x00, 0x01, int00h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
     set_interrupt(0x20, 0x01, int20h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
     set_interrupt(0x21, 0x01, int21h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
     set_interrupt(0x2c, 0x01, int2ch_handler, IDT_INTERRUPT_GATE, 0x0, 1);
     set_interrupt(0x27, 0x01, int27h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
-    set_interrupt(0x40, 0x01, int40h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
+
+    // Syscall
+    set_interrupt(0x80, 0x01, int80h_handler, IDT_TRAP_GATE, 0x3, 1);
 
     idtr_t idtr;
     idtr.n_entries = N_IDT_ENTRIES << 3;

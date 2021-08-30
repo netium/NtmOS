@@ -48,7 +48,7 @@ void task_main(process_t * task) {
 	char msg[256];
 	k_sprintf(msg, "Task %x is started", (unsigned int)task);
 
-	// k_printf(msg);
+	k_printf(msg);
 
     	sti();
 
@@ -80,10 +80,10 @@ void task_main(process_t * task) {
 }
 
 void switch_task(timer_t * timer) {
-    int eflags; 
+	int eflags; 
 	get_eflags(eflags);
-    cli();
-    k_printf("Start to switch process...");
+	cli();
+	k_printf("Start to switch process...");
 	process_t * cur_task = g_current_task;
 	unsigned int tss_id = cur_task->tss_entry_id;
 	unsigned int sched_task_tss_id = tss_id == 3 ? 4 : 3;
@@ -172,22 +172,23 @@ void task_init(process_t * task, int data_size, int kern_stack_size) {
 	initial_task_event_queue(&task->event_queue);
 	task->tss.ldtr = 0; 
 	task->tss.iopb_offset = 0x40000000;
-    task->tss.eflags = 0x202;
-    task->tss.eax = 0x0;
-    task->tss.ebx = 0x0;
-    task->tss.ecx = 0x0;
-    task->tss.edx = 0x0;
-    task->tss.ebp = 0x0;
-    task->tss.esi = 0x0;
-    task->tss.edi = 0x0;
-    task->tss.cs = 0x1 << 3;
-    task->tss.ds = 0x2 << 3;
-    task->tss.ss = 0x2 << 3;
-    task->tss.es = 0x2 << 3;
-    task->tss.fs = 0x2 << 3;
-    task->tss.gs = 0x2 << 3;
-    task->tss.esp = (unsigned int)(task->kern_stack) + task->kern_stack_size - 4;
-    task->tss.eip = 0x0;		// Temporarily set to 0x0, but will overrided to the new task start address
+	task->tss.eflags = 0x202;
+	task->tss.eax = 0x0;
+	task->tss.ebx = 0x0;
+	task->tss.ecx = 0x0;
+	task->tss.edx = 0x0;
+	task->tss.ebp = 0x0;
+	task->tss.esi = 0x0;
+	task->tss.edi = 0x0;
+	task->tss.cs = 0x1 << 3;
+	task->tss.ds = 0x2 << 3;
+	task->tss.ss = 0x2 << 3;
+	task->tss.es = 0x2 << 3;
+	task->tss.fs = 0x2 << 3;
+	task->tss.gs = 0x2 << 3;
+	task->tss.cr3 = GPT_TABLE_PHY_START_ADDR;
+	task->tss.esp = (unsigned int)(task->kern_stack) + task->kern_stack_size - 4;
+	task->tss.eip = 0x0;		// Temporarily set to 0x0, but will overrided to the new task start address
 
 	task->tss.esp0 = task->tss.esp;
 	task->tss.ss0 = task->tss.ss;
@@ -293,22 +294,23 @@ unsigned int initial_default_task() {
 
 	task->tss.ldtr = 0;
 	task->tss.iopb_offset = 0x40000000;
-    task->tss.eflags = 0x202;
-    task->tss.eax = 0x0;
-    task->tss.ebx = 0x0;
-    task->tss.ecx = 0x0;
-    task->tss.edx = 0x0;
-    task->tss.ebp = 0x0;
-    task->tss.esi = 0x0;
-    task->tss.edi = 0x0;
-    task->tss.cs = 0x1 << 3;
-    task->tss.ds = 0x2 << 3;
-    task->tss.ss = 0x2 << 3;
-    task->tss.es = 0x2 << 3;
-    task->tss.fs = 0x2 << 3;
-    task->tss.gs = 0x2 << 3;
-    task->tss.esp = 0;
-    task->tss.eip = 0x0;
+	task->tss.eflags = 0x202;
+	task->tss.eax = 0x0;
+	task->tss.ebx = 0x0;
+	task->tss.ecx = 0x0;
+	task->tss.edx = 0x0;
+	task->tss.ebp = 0x0;
+	task->tss.esi = 0x0;
+	task->tss.edi = 0x0;
+	task->tss.cs = 0x1 << 3;
+	task->tss.ds = 0x2 << 3;
+	task->tss.ss = 0x2 << 3;
+	task->tss.es = 0x2 << 3;
+	task->tss.fs = 0x2 << 3;
+	task->tss.gs = 0x2 << 3;
+	task->tss.esp = 0;
+	task->tss.eip = 0x0;
+	task->tss.cr3 = GPT_TABLE_PHY_START_ADDR;
 	task->tss.ss0 = task->tss.ss;
 	task->tss.esp0 = task->tss.esp;
 

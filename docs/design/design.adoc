@@ -31,15 +31,15 @@ This section documents the kernel virtual space memory layout, the below table d
 
 [options="header", title="Kernel Virtual Space Memory Layout"]
 |==========
-| Virtual Address Start Address | Size | Usage | Non-Swap | Comment
-| 0x80000000 | 1MB | IDT + GDT + LDT | true |  
-| 0x80100000 | 1MB | Kernel executable | true |
-| 0x80200000 | 1MB | Init kernel stack | true |
-| 0x80300000 | 1MB | Kernel heap | true | 
-| 0x80400000 | 8MB | Global page table | true |
+| Virtual Address Start Address | Virtual Address End Address | Size | Usage | Non-Swap | Comment
+| 0x80000000 | 0x80100000 | 1MB | IDT + GDT + LDT | true |  
+| 0x80100000 | 0x80200000 | 1MB | Kernel executable | true |
+| 0x80200000 | 0x80300000 | 1MB | Init kernel stack | true | from 0x80300000 down to start address
+| 0x80400000 | 0x80C00000 | 8MB | Global page table | true |
+| 0x80C00000 | N/A | N/A | Kernel heap | true | 
 |==========
 
-I am still considering on how to fit the page frame bitmap into the kernel space table.
+I am still considering on how to fit the page frame bitmap into the kernel space table, suppose we need to support up to 4GB RAM, and for each page frame (4KB) we need 1 byte to store the frame allocation status, then it just need 1MB memory to for the whole page frame bitmap table.
 
 NOTE: I may need to move the kernel heap to after the global page table so that it can have more space.
 

@@ -62,15 +62,14 @@ void kernel_main(void) {
 
 	process_t * current_task = initial_tasks();
 
-	/*
 	process_t * new_task = task_alloc();
+
 	task_init(new_task, 8192, 8192);
+
 	start_task(new_task, task_main);
 
 	k_sprintf(str, "New task %x added", (unsigned int)new_task);
 	k_printf(str);
-	*/
-
 
 	task_main(current_task);
 
