@@ -122,13 +122,38 @@ void * k_memrev(void *ptr, size_t num) {
 	return ptr;
 }
 
+static const char NUM_MAP[] = "0123456789ABCDEF";
+
+void *k_utoa(unsigned num, char* str, int base) {
+	if (NULL == str) return NULL;
+	if (base > 16) base = 16;
+
+	size_t i = 0;
+
+	if (num == 0) {
+		str[i++] = NUM_MAP[num];
+		str[i] = NULL;
+		return str;
+	}
+
+	while (num != 0) {
+		int r = num % base;
+		str[i++] = NUM_MAP[r];
+		num /= base;
+	}
+
+	str[i] = NULL;
+
+	k_memrev(str, i);
+
+	return str;
+}
+
 void *k_itoa(int num, char* str, int base){
 	if (NULL == str) return NULL;
 	if (base > 16) base = 16;
 
-	static const char NUM_MAP[] = "0123456789ABCDEF";
-
-	int i = 0;
+	size_t i = 0;
 	int is_neg = 0;
 
 	if (num == 0) {
