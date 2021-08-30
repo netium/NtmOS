@@ -205,6 +205,7 @@ int k_sprintf(char *str, const char *fmt, ...) {
 					break;
 				case 's':
 					string_temp = *(char **)sp;
+					str[l] = NULL;
 					k_strcat(str, string_temp);
 					l += k_strlen(string_temp);
 					sp += sizeof (char *);
@@ -212,6 +213,7 @@ int k_sprintf(char *str, const char *fmt, ...) {
 				case 'd':
 					int_temp = *(int *)sp;
 					k_itoa(int_temp, buffer, 10);
+					str[l] = NULL;
 					k_strcat(str, buffer);
 					l += k_strlen(buffer);
 					sp += sizeof (int);
@@ -219,6 +221,7 @@ int k_sprintf(char *str, const char *fmt, ...) {
 				case 'x':
 					uint_temp = *(unsigned int *)sp;
 					k_utoa(uint_temp, buffer, 16);
+					str[l] = NULL;
 					k_strcat(str, buffer);
 					l += k_strlen(buffer);
 					sp += sizeof (int);
