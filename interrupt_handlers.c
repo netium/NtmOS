@@ -46,6 +46,7 @@ __attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
             time_to_switch_task = 1;
         }
         else {
+
             simple_interrupt_event_node_t *p_node = k_malloc(sizeof (simple_interrupt_event_node_t));
 
             if (p_node == 0) {
@@ -67,6 +68,7 @@ __attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
 
 // Keyboard interrupt
 __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
+    
      unsigned char status;
      char keycode;
 
@@ -88,7 +90,6 @@ __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
 // COM ports interrupt
 __attribute__ ((interrupt)) void int24h_handler(interrupt_frame_t *frame) {
     // This is for COM ports
-    k_printf("Int 4h triggered");
 }
 
 // Mouse interrupt
@@ -116,7 +117,6 @@ __attribute__ ((interrupt)) void int27h_handler(interrupt_frame_t *frame) {
     _io_out8(PIC0_OCW2, 0x67);
 }
 
-__attribute__ ((interrupt)) void int40h_handler(interrupt_frame_t *frame) {
+__attribute__ ((interrupt)) void int80h_handler(interrupt_frame_t *frame) {
     sti();    // It's for system call, so can enable interrupt
-    k_printf("Int 40h triggered");
 }
