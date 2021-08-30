@@ -158,7 +158,7 @@ void *k_itoa(int num, char* str, int base){
 }
 
 int k_sprintf(char *str, const char *fmt, ...) {
-	char * sp = (char*)&fmt;
+	const char * sp = (char*)&fmt;
 	sp += sizeof(const char*);
 
 	int int_temp;
@@ -197,12 +197,15 @@ int k_sprintf(char *str, const char *fmt, ...) {
 					l += k_strlen(buffer);
 					sp += sizeof (int);
 					break;
+				case 0:	// Reach out to the end of the format string
+					goto end;
 			}
 		}
 		else {
 			str[l++] = ch;
 		}
 	}
+end:
 	str[l] = 0x0;
 	return l;
 }
