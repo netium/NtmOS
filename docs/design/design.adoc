@@ -56,3 +56,22 @@ As we have 1MB for the memeory space of IDT+GDT+LDT, so in this region we can ha
 | Virtual Address Start Address | Size | Usage | Comment
 | 0x80000000 | 64KB | IDT | For IDT table, reserved 64KB, actually only the first 2KB are needed, with 256 IDT entries
 | 0x80010000 | 64KB | GDT | For GDT table, with 8192 GDT entries
+
+=== Memory Layout for applications ===
+
+Currently the physical address from [0x00000000, 0x08000000) are not used by the kernel, so we can use this range for application memory.
+
+But as we know that there are some of the memory hole before 64MB (also some address are mapped to special functions such as text mode display buffer), so for safety we will use the physical address from [0x04000000, 0x08000000) for application memory.
+
+The idea is that, each application will be allocated by 1MB memory space, so we can have 64 applications to be running at the same time (as now we don't support sophisticated paging), we will enable the LDT so that each application will have its own LDT to restrict the memory access.
+
+And in this 1MB memory, the first 512KB will be located to code + data, and the second 512KB will be located to userspace stack (grow in downwards direction).
+
+So let's start the implementation in a native way:
+
+We have a 64 elements array maintined by kernel, each corresponding a 1MB slot in [64MB, 128MB), the element identify whether the corresponding slot is used by any process or not, the task_t structure will be expand to include the index in this array, and the task_t also need to expand to include LDT table, we shall also set the LDT address in task's TSS table accordingly.
+
+Once this get done, we copy the simpleapp's binary code to the corresponding memory, and then use the way descripted in https://wiki.osdev.org/Getting_to_Ring_3[] to make the kernel jump to the userspace.
+
+Easy? Let's get it done.
+

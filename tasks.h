@@ -2,6 +2,7 @@
 #define _TSS_H_
 
 #include <stddef.h>
+#include "file.h"
 #include "k_timer.h"
 #include "kernel_inits.h"
 #include "mm.h"
@@ -51,13 +52,15 @@ typedef struct st_process_t process_t;
 typedef struct st_process_t {
     long pid;   // process pid
     process_status_t   status;  // process status
+    size_t umem_slot;
+    tss_t tss;
     simple_interrupt_event_queue_t event_queue;
     unsigned int tss_entry_id;  // tss pid in GDT
-    void * data;        // base address of data stack segment
-    unsigned int data_size;
+    file_t * files[12];
+    void * data_stack;        // base address of data stack segment
+    size_t data_size;
     void * kern_stack;  // base address of kernel stack segment
-    unsigned int kern_stack_size;
-    tss_t tss;
+    size_t kern_stack_size;
     process_t *next;
     void * console; // No used now, but will used for determine which task takes the current activate console
     long ppid;  // parent process pid

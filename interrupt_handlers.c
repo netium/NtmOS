@@ -118,5 +118,11 @@ __attribute__ ((interrupt)) void int27h_handler(interrupt_frame_t *frame) {
 }
 
 __attribute__ ((interrupt)) void int80h_handler(interrupt_frame_t *frame) {
+    cli();
+    char buf[256];
+    k_printf("System call interrupt triggered");
+    k_sprintf(buf, "The interrupt frame is located at %x.", frame);
+    k_printf(buf);
+    halt();
     sti();    // It's for system call, so can enable interrupt
 }

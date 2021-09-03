@@ -21,6 +21,9 @@ process_t *g_sleep_task_queue_head = 0;
 process_t *g_finished_task_queue = 0;
 process_t *g_io_blocked_task_queue_head = 0;
 
+// simple userspace code for test
+unsigned char simpleapp_data[] = {0x31, 0xc0, 0x40, 0xeb, 0xfb};
+
 timer_t *g_task_switch_timer = 0;
 
 static volatile int g_next_task_id = 1;
@@ -147,11 +150,16 @@ void switch_task(timer_t *timer)
 
 process_t *task_alloc()
 {
+	int proc_umem_slot = proc_umem_alloc();
+	if (proc_umem_alloc < 0)
+		return NULL;	
+
 	process_t *task = k_malloc(sizeof(process_t));
 	if (0 != task)
 	{
 		task->status = TASK_ALLOC;
 		task->pid = g_next_task_id;
+		task->umem_slot = proc_umem_slot;
 		atom_inc(g_next_task_id);
 	}
 
@@ -166,8 +174,10 @@ void task_free(process_t *task)
 	if (0 != task->kern_stack)
 		k_free(task->kern_stack);
 
-	if (0 != task->data)
-		k_free(task->data);
+	if (0 != task->data_stack)
+		k_free(task->data_stack);
+
+	proc_umem_free(task->umem_slot);
 }
 
 void task_init(process_t *task, int data_size, int kern_stack_size)
@@ -221,6 +231,9 @@ void task_init(process_t *task, int data_size, int kern_stack_size)
 		task->ppid = 0;
 
 	task->status = TASK_INIT;
+
+	// Hook: to copy the sample app code to the userspace memory:
+	k_memcpy(get_proc_umem_start_address(task->umem_slot), simpleapp_data, sizeof(simpleapp_data));	
 }
 
 void initial_task_event_queue(simple_interrupt_event_queue_t *event_queue)
@@ -362,6 +375,9 @@ unsigned int initial_default_task()
 
 	set_task_into_gdt(gdt_slot, &task->tss, sizeof(tss_t));
 
+	// Hook: to copy the sample app code to the userspace memory:
+	k_memcpy(get_proc_umem_start_address(task->umem_slot), simpleapp_data, sizeof(simpleapp_data));	
+
 	return gdt_slot;
 }
 
@@ -406,7 +422,7 @@ void process_keyboard_event(process_t *task, keyboard_event_t *process_keyboard_
 {
 	tui_putchar(process_keyboard_event->data);
 	if (process_keyboard_event->data == 'A')
-		__asm__ inline volatile("int %0" ::"N"(0x40));
+		__asm__ inline volatile("int %0" ::"N"(0x80));
 }
 
 void process_mouse_event(process_t *task, mouse_event_t *p_mouse_event)
