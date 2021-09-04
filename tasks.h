@@ -39,12 +39,13 @@ typedef struct {
 } tss_t;
 
 typedef enum {
-    TASK_ALLOC  = 0x00,
-    TASK_INIT   = 0x01,
-    TASK_READY  = 0x02,
-    TASK_RUNNING    = 0x03,
-    TASK_BLOCK  = 0x04,
-    TASK_ZOMBIE   = 0x05
+    TASK_UNUSED = 0x00,
+    TASK_ALLOC  = 0x01,
+    TASK_INIT   = 0x02,
+    TASK_READY  = 0x03,
+    TASK_RUNNING    = 0x04,
+    TASK_BLOCK  = 0x05,
+    TASK_ZOMBIE   = 0x06
 } process_status_t;
 
 typedef struct st_process_t process_t;
@@ -78,6 +79,8 @@ extern process_t * g_finished_task_queue;
 extern process_t * g_io_blocked_task_queue_head;
 
 extern timer_t *g_task_switch_timer;
+
+void init_process_management();
 
 void task_main(process_t * task);
 

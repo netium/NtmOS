@@ -13,6 +13,10 @@
 tss_t g_tss3 __attribute__((aligned(4)));
 tss_t g_tss4 __attribute__((aligned(4)));
 
+#define N_MAX_PROCESSES (64)
+
+static process_t g_process[N_MAX_PROCESSES] __attribute__((aligned(4))) = {0};
+
 process_t *g_current_task = 0;
 process_t *g_idle_task = 0;
 process_t *g_ready_task_queue_head = 0;
@@ -41,6 +45,17 @@ void process_keyboard_event(process_t *task, keyboard_event_t *process_keyboard_
 void process_mouse_event(process_t *task, mouse_event_t *p_mouse_event);
 
 void process_timer_event(process_t *task, timer_event_t *p_timer_event);
+
+void init_process_management() {
+	for (int i = 0; i < N_MAX_PROCESSES; i++) {
+		g_process[i].tss_entry_id = i;
+		g_process[i].status = TASK_UNUSED;
+
+		// Install the task's TSS to the GDT
+
+		// Install the task's LDT to the GDT
+	}
+}
 
 void idle_task_main(process_t *task)
 {
@@ -154,8 +169,17 @@ process_t *task_alloc()
 	if (proc_umem_alloc < 0)
 		return NULL;	
 
-	process_t *task = k_malloc(sizeof(process_t));
-	if (0 != task)
+	process_t *task = NULL;
+
+	// Find the unused task slot
+	for (int i = 0; i < N_MAX_PROCESSES; i++) {
+		if (g_process[i].pid == 0) {
+			task  = &g_process[i];
+			break;
+		}
+	}
+
+	if (NULL != task)
 	{
 		task->status = TASK_ALLOC;
 		task->pid = g_next_task_id;
@@ -169,7 +193,14 @@ process_t *task_alloc()
 void task_free(process_t *task)
 {
 	if (0 == task)
-		return;
+		_panic();	// task pointer shall not be NULL
+
+	if (task->pid == 0)
+		_panic();	// shall not free an unused task slot
+
+	task->pid = 0;
+
+	k_memset(&task->tss, 0, sizeof(task->tss));
 
 	if (0 != task->kern_stack)
 		k_free(task->kern_stack);
@@ -233,7 +264,7 @@ void task_init(process_t *task, int data_size, int kern_stack_size)
 	task->status = TASK_INIT;
 
 	// Hook: to copy the sample app code to the userspace memory:
-	k_memcpy(get_proc_umem_start_address(task->umem_slot), simpleapp_data, sizeof(simpleapp_data));	
+	k_memcpy((void *)get_proc_umem_start_address(task->umem_slot), simpleapp_data, sizeof(simpleapp_data));	
 }
 
 void initial_task_event_queue(simple_interrupt_event_queue_t *event_queue)
@@ -359,7 +390,7 @@ unsigned int initial_default_task()
 	task->tss.gs = 0x2 << 3;
 	task->tss.esp = 0;
 	task->tss.eip = 0x0;
-	task->tss.cr3 = GPT_TABLE_PHY_START_ADDR;
+	task->tss.cr3 = (size_t)GPT_TABLE_PHY_START_ADDR;
 	task->tss.ss0 = task->tss.ss;
 	task->tss.esp0 = task->tss.esp;
 
@@ -376,7 +407,7 @@ unsigned int initial_default_task()
 	set_task_into_gdt(gdt_slot, &task->tss, sizeof(tss_t));
 
 	// Hook: to copy the sample app code to the userspace memory:
-	k_memcpy(get_proc_umem_start_address(task->umem_slot), simpleapp_data, sizeof(simpleapp_data));	
+	k_memcpy((void *)get_proc_umem_start_address(task->umem_slot), simpleapp_data, sizeof(simpleapp_data));	
 
 	return gdt_slot;
 }

@@ -58,6 +58,10 @@ void kernel_main(void) {
 
 	k_printf("Init mouse completed!");
 
+	init_process_management();
+
+	k_printf("Init process management subsystem completed");
+
 	k_printf("Kernel is running......");
 
 	process_t * current_task = initial_tasks();
