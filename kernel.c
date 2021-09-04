@@ -2,6 +2,7 @@
 // Under GPLv2.0 lincense
 
 #include "kernel_functions.h"
+#include "segments.h"
 #include "kernel_inits.h"
 #include "gui.h"
 #include "k_heap.h"

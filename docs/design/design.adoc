@@ -32,7 +32,7 @@ This section documents the kernel virtual space memory layout, the below table d
 [options="header", title="Kernel Virtual Space Memory Layout"]
 |==========
 | Virtual Address Start Address | Virtual Address End Address | Size | Usage | Non-Swap | Comment
-| 0x80000000 | 0x80100000 | 1MB | IDT + GDT + LDT | true |  
+| 0x80000000 | 0x80100000 | 1MB | IDT + GDT | true |  
 | 0x80100000 | 0x80200000 | 1MB | Kernel executable | true |
 | 0x80200000 | 0x80300000 | 1MB | Init kernel stack | true | from 0x80300000 down to start address
 | 0x80400000 | 0x80C00000 | 8MB | Global page table | true |
@@ -49,13 +49,14 @@ For the size of IDT table:  256 * 8 = 2048 = 2KB
 
 For the size of the GDT table:  8192 * 8 = 65536 = 64KB
 
-As we have 1MB for the memeory space of IDT+GDT+LDT, so in this region we can have sub memory layout as:
+As we have 1MB for the memeory space of IDT+GDT, so in this region we can have sub memory layout as:
 
-[options="header", title="IDT + GDT + LDT Memory Region Layout"]
+[options="header", title="IDT + GDT Memory Region Layout"]
 |=========
 | Virtual Address Start Address | Size | Usage | Comment
 | 0x80000000 | 64KB | IDT | For IDT table, reserved 64KB, actually only the first 2KB are needed, with 256 IDT entries
 | 0x80010000 | 64KB | GDT | For GDT table, with 8192 GDT entries
+|=========
 
 === Memory Layout for applications ===
 
@@ -74,4 +75,34 @@ We have a 64 elements array maintined by kernel, each corresponding a 1MB slot i
 Once this get done, we copy the simpleapp's binary code to the corresponding memory, and then use the way descripted in https://wiki.osdev.org/Getting_to_Ring_3[] to make the kernel jump to the userspace.
 
 Easy? Let's get it done.
+
+
+=== GDT Layout ===
+
+This section describe the GDT layout.
+
+At current stage the GDT is planned to have the following layout:
+
+[options="header", title="GDT Layout"]
+|====
+| GDT Entry | Usage
+| 0 | No used
+| 1 | System code segment
+| 2 | System data sgement
+| 3 - 15 | reserved
+| 16 - 79 | TSS for processes
+| 80 - 143 | LDT for processes
+| 144 - 8191 | Unallocated
+|==== 
+
+=== LDT Layout ===
+
+Each process has its own LDT for their userspace code and data, the the process LDT will have the following layout:
+
+[options="header", title="LDT Layout"]
+|====
+| LDT Entry | Usage
+| 0 | userspace code segment
+| 1 | userspace data segment
+|====
 

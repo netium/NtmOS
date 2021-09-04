@@ -6,6 +6,7 @@
 #include "k_timer.h"
 #include "kernel_inits.h"
 #include "mm.h"
+#include "segments.h"
 
 // refer to: https://wiki.osdev.org/Task_State_Segment
 typedef struct {
@@ -52,9 +53,10 @@ typedef struct st_process_t process_t;
 
 typedef struct st_process_t {
     long pid;   // process pid
+    tss_t tss;
+    ldt_entry_t ldt[2];
     process_status_t   status;  // process status
     size_t umem_slot;
-    tss_t tss;
     simple_interrupt_event_queue_t event_queue;
     unsigned int tss_entry_id;  // tss pid in GDT
     file_t * files[12];
