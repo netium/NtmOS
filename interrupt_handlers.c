@@ -22,6 +22,10 @@ __attribute__ ((interrupt)) void int00h_handler(interrupt_frame_t *frame, unsign
 
 }
 
+__attribute__ ((interrupt)) void int0dh_handler(interrupt_frame_t *frame, unsigned int error_code) {
+    k_printf("#GP Exception occur");
+}
+
 // Programmable internal timer interrrupt
 __attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
     _io_out8(PIC0_OCW2, 0x60);

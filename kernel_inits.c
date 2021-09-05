@@ -68,6 +68,7 @@ void initial_idt() {
     }
 
     // set_interrupt(0x00, 0x01, int00h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
+    // set_interrupt(0x0d, 0x01, int0dh_handler, IDT_INTERRUPT_GATE, 0x0, 1);
     set_interrupt(0x20, 0x01, int20h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
     set_interrupt(0x21, 0x01, int21h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
     set_interrupt(0x2c, 0x01, int2ch_handler, IDT_INTERRUPT_GATE, 0x0, 1);

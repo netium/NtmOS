@@ -401,7 +401,7 @@ unsigned int initial_default_task()
 	g_current_task = task;
 
 	unsigned short ldtr = ((N_LDT_SEG_START_SLOT_IN_GDT + task->tss_entry_id) << 3) | 0x5;
-	load_idt(ldtr);
+	load_ldt(ldtr);
 
 	return N_TSS_START_SLOT_IN_GDT + task->tss_entry_id;
 }
