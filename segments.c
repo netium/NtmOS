@@ -42,8 +42,8 @@ int install_tss_to_gdt(unsigned int slot, void *base_addr, unsigned int limit)
 	entry->fields.limit_low_word = (unsigned int)limit & 0xFFFF;
 	entry->fields.limit_high = ((unsigned int)limit >> 16) & 0xF;
 	entry->fields.access.access_byte = 0x89;
-	entry->fields.gr = 0x0;
-	entry->fields.sz = 0x1;
+	entry->fields.G = 0x0;
+	entry->fields.DB = 0x1;
 
 	return 0;
 }
@@ -57,10 +57,15 @@ int install_ldt_to_gdt(size_t slot, void *base_addr, size_t limit) {
 	entry->fields.base_high_byte = ((size_t)base_addr >> 24) & 0xFF;
 	entry->fields.limit_low_word = (size_t)limit & 0xFFFF;
 	entry->fields.limit_high = ((size_t)limit >> 16) & 0xF;
-	entry->fields.access.access_byte = 0x89;
-	entry->fields.access.privl = 0x3;
-	entry->fields.gr = 0x0;
-	entry->fields.sz = 0x1;
+	entry->fields.access.S = 0;
+	entry->fields.access.ac = 0;
+	entry->fields.access.rw = 1;
+	entry->fields.access.dc = 0;
+	entry->fields.access.ex = 0;
+	entry->fields.access.DPL = 0x3;
+	entry->fields.access.P = 1;
+	entry->fields.G = 0x0;
+	entry->fields.DB = 0x1;
 }
 
 int uninstall_gdt_entry(size_t slot)
@@ -69,7 +74,7 @@ int uninstall_gdt_entry(size_t slot)
 		_panic();	// Out of GDT boundary
 
 	gdt_entry_t *entry = ((gdt_entry_t *)GDT_TABLE_START_ADDR) + slot;
-	entry->fields.access.pr = 0; // Simply set present bit to 0 to mark as unpresent
+	entry->fields.access.P = 0; // Simply set present bit to 0 to mark as unpresent
 
 	return 0;
 }
@@ -85,7 +90,7 @@ int install_seg_to_ldt(void *ldt_addr, size_t slot, void *base_addr, size_t limi
 	entry->fields.limit_low_word = (size_t)limit & 0xFFFF;
 	entry->fields.limit_high = ((size_t)limit >> 16) & 0xF;
 	entry->fields.access.access_byte = 0x89;
-	entry->fields.access.privl = 0x3;
-	entry->fields.gr = 0x0;
-	entry->fields.sz = 0x1;
+	entry->fields.access.DPL = 0x3;
+	entry->fields.G = 0x0;
+	entry->fields.DB = 0x1;
 }

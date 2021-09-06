@@ -65,7 +65,7 @@ void init_process_management() {
 		install_seg_to_ldt(&s_processes[i].ldt, 1, 0x4000000 + (i * 0x100000), 0x100000);
 
 		// Set the TSS ldtr value
-		s_processes[i].tss.ldtr = ((N_LDT_SEG_START_SLOT_IN_GDT + i) << 3) | 0x5;
+		s_processes[i].tss.ldtr = (N_LDT_SEG_START_SLOT_IN_GDT + i) << 3;
 	}
 }
 
@@ -159,7 +159,7 @@ void switch_task(timer_t *timer)
 	k_set_timer_time(timer, 1000);
 
 	char msg[256];
-	k_sprintf(msg, "Switch to task: %x at gdt %x", (unsigned int)sched_task, sched_task->tss_entry_id);
+	k_sprintf(msg, "Switch to task at %x for process slot id: %x", (unsigned int)sched_task, sched_task->tss_entry_id);
 	k_printf(msg);
 
 	k_itoa(sched_task->pid, msg, 16);
@@ -226,8 +226,6 @@ void task_init(process_t *task, int data_size, int kern_stack_size)
 	task->pid = g_next_task_id;
 	atom_inc(g_next_task_id);
 
-	task->tss_entry_id = 0;
-
 	task->console = 0;
 
 	task->next = 0;
@@ -248,11 +246,11 @@ void task_init(process_t *task, int data_size, int kern_stack_size)
 	task->tss.es = 0x2 << 3;
 	task->tss.fs = 0x2 << 3;
 	task->tss.gs = 0x2 << 3;
-	task->tss.cr3 = GPT_TABLE_PHY_START_ADDR;
+	task->tss.cr3 = (size_t)GPT_TABLE_PHY_START_ADDR;
 	task->tss.esp = (unsigned int)(task->kern_stack) + task->kern_stack_size - 4;
 	task->tss.eip = 0x0; // Temporarily set to 0x0, but will overrided to the new task start address
 
-	task->tss.esp0 = task->tss.esp;
+	task->tss.esp0 = (0x1 << 3);
 	task->tss.ss0 = task->tss.ss;
 
 	if (g_current_task > 0)
@@ -263,7 +261,7 @@ void task_init(process_t *task, int data_size, int kern_stack_size)
 	task->status = TASK_INIT;
 
 	// Hook: to copy the sample app code to the userspace memory:
-	k_memcpy((void *)get_proc_umem_start_address(task->umem_slot), simpleapp_data, sizeof(simpleapp_data));	
+	k_memcpy((void *)get_proc_umem_start_address(task->tss_entry_id), simpleapp_data, sizeof(simpleapp_data));	
 }
 
 void initial_task_event_queue(simple_interrupt_event_queue_t *event_queue)
@@ -303,24 +301,6 @@ void put_task_to_ready(process_t *task)
 
 	*g_ready_task_queue_tail_pointer = task;
 	g_ready_task_queue_tail_pointer = &task->next;
-}
-
-int set_task_into_gdt(unsigned int slot, void *base_addr, unsigned int limit)
-{
-	if (slot >= 8192)
-		return -1;
-
-	gdt_entry_t *entry = ((gdt_entry_t *)GDT_TABLE_START_ADDR + slot);
-	entry->fields.base_low_word = (unsigned int)base_addr & 0xFFFF;
-	entry->fields.base_mid_byte = ((unsigned int)base_addr >> 16) & 0xFF;
-	entry->fields.base_high_byte = ((unsigned int)base_addr >> 24) & 0xFF;
-	entry->fields.limit_low_word = (unsigned int)limit & 0xFFFF;
-	entry->fields.limit_high = ((unsigned int)limit >> 16) & 0xF;
-	entry->fields.access.access_byte = 0x89;
-	entry->fields.gr = 0x0;
-	entry->fields.sz = 0x1;
-
-	return 0;
 }
 
 process_t *initial_tasks()
@@ -363,8 +343,6 @@ unsigned int initial_default_task()
 
 	task->pid = 0;
 
-	task->tss_entry_id = 0;
-
 	task->console = 0;
 
 	task->next = 0;
@@ -400,7 +378,10 @@ unsigned int initial_default_task()
 
 	g_current_task = task;
 
-	unsigned short ldtr = ((N_LDT_SEG_START_SLOT_IN_GDT + task->tss_entry_id) << 3) | 0x5;
+	// Hook: to copy the sample app code to the userspace memory:
+	k_memcpy((void *)get_proc_umem_start_address(task->tss_entry_id), simpleapp_data, sizeof(simpleapp_data));	
+	unsigned short ldtr = (N_LDT_SEG_START_SLOT_IN_GDT + task->tss_entry_id) << 3;
+
 	load_ldt(ldtr);
 
 	return N_TSS_START_SLOT_IN_GDT + task->tss_entry_id;
@@ -463,4 +444,14 @@ void process_timer_event(process_t *task, timer_event_t *p_timer_event)
 	{
 		p_timer_event->p_timer->pf(p_timer_event->p_timer);
 	}
+}
+
+process_t* kern_fork(process_t *source) {
+	if (NULL == source)
+		_panic();
+
+	process_t * new = task_alloc();
+	task_init(new, source->data_size, source->kern_stack);
+
+	k_memcpy(new->data_stack, source->data_size, source->data_size);		
 }

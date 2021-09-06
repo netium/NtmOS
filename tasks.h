@@ -52,13 +52,13 @@ typedef enum {
 typedef struct st_process_t process_t;
 
 typedef struct st_process_t {
-    long pid;   // process pid
-    tss_t tss;
-    ldt_entry_t ldt[2];
+    size_t pid;   // process pid
+    size_t tss_entry_id;  // tss pid in GDT
     process_status_t   status;  // process status
+    ldt_entry_t ldt[2]; // offset: + 0x0c
+    tss_t tss;  // offset: + 0x1c
     size_t umem_slot;
     simple_interrupt_event_queue_t event_queue;
-    unsigned int tss_entry_id;  // tss pid in GDT
     file_t * files[12];
     void * data_stack;        // base address of data stack segment
     size_t data_size;

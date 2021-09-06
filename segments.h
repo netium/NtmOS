@@ -14,21 +14,22 @@ typedef union {
         union {
             unsigned char access_byte;
             struct {
+                // ac/rw/dc/ex form the 4bits segment type field
                 unsigned int ac:1;
                 unsigned int rw:1;
                 unsigned int dc:1;
                 unsigned int ex:1;
-                unsigned int access_resv:1;
-                unsigned int privl:2;
-                unsigned int pr:1;
+                unsigned int S:1;   // Descriptor type (0 = system; 1 = code or data)
+                unsigned int DPL:2; // Descriptor privilege level
+                unsigned int P:1;   // Segment present
             }; 
         } access;
         struct {
             int limit_high:4;
-            int flag_resv1:1;
-            int flag_resv2:1;
-            int sz:1;
-            int gr:1;
+            int AVL:1;  // Available for use by system software
+            int L:1;    // 64bit code segement (IA-32e mode only)
+            int DB:1;   // Default operation size (0 = 16bit segement; 1 = 32bit segment)
+            int G:1;    // Granularity
         };
         unsigned char base_high_byte;
     } fields;
