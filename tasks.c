@@ -29,7 +29,7 @@ process_t *g_finished_task_queue = 0;
 process_t *g_io_blocked_task_queue_head = 0;
 
 // simple userspace code for test
-unsigned char simpleapp_data[] = {0x31, 0xc0, 0x40, 0xeb, 0xfb};
+unsigned char simpleapp_data[] = {0x31, 0xdb, 0x43, 0xb8, 0x01, 0x00, 0x00, 0x00, 0xcd, 0x80, 0xeb, 0xf4};
 
 timer_t *g_task_switch_timer = 0;
 

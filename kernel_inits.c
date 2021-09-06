@@ -77,7 +77,7 @@ void initial_idt() {
     set_interrupt(0x2c, 0x01, int2ch_handler_stub, IDT_INTERRUPT_GATE, 0x0, 1);
 
     // Syscall
-    set_interrupt(0x80, 0x01, int80h_handler, IDT_TRAP_GATE, 0x3, 1);
+    set_interrupt(0x80, 0x01, int80h_handler_stub, IDT_TRAP_GATE, 0x3, 1);
 
     idtr_t idtr;
     idtr.n_entries = N_IDT_ENTRIES << 3;

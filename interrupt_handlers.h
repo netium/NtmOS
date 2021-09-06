@@ -17,5 +17,5 @@ void int21h_handler();
 void int24h_handler();
 void int27h_handler();
 void int2ch_handler();
-void int80h_handler(interrupt_frame_t *frame);
+void int80h_handler();
 #endif

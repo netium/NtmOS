@@ -3,12 +3,14 @@ global int21h_handler_stub
 global int24h_handler_stub
 global int27h_handler_stub
 global int2ch_handler_stub
+global int80h_handler_stub
 
 extern int20h_handler
 extern int21h_handler
 extern int24h_handler
 extern int27h_handler
 extern int2ch_handler
+extern int80h_handler
 
 .text
 
@@ -112,3 +114,22 @@ int2ch_handler_stub:
 	popad
 	iret
 
+int80h_handler_stub:
+	pushad
+	push ds
+	push es
+	push fs
+	push gs
+	cld
+	mov ebx, (2 << 3)
+	mov ds, ebx
+	mov es, ebx
+	mov fs, ebx
+	mov gs, ebx
+	call int80h_handler
+	pop gs
+	pop fs
+	pop es
+	pop ds
+	popad
+	iret
