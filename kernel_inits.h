@@ -68,7 +68,6 @@ void initial_interrupt_event_queue();
 
 void initial_global_page_table();
 
-void initial_gdt();
 void initial_idt();
 
 void initial_pic();

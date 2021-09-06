@@ -33,6 +33,8 @@ void _putchar(int ch);
 
 void _load_page_table(void *page_directory_addr);
 
+void _jump_usermode(void * uip, void *usp);
+
 #define cli() do { \
         __asm__ inline volatile ("cli"); \
     } while (0) 
@@ -64,7 +66,10 @@ void _load_page_table(void *page_directory_addr);
 #define load_idt(a) do { \
         __asm__ inline volatile ("lidt %[v]"::[v] "m" (a)); \
     } while (0)
-#endif
+
+#define load_ldt(a) do { \
+        __asm__ inline volatile ("lldt %[v]"::[v] "m" (a)); \
+    } while (0)
 
 #define get_eflags(a) do { \
         __asm__ inline volatile ("pushfl\npopl %[v]":[v] "=rm" (a)); \
@@ -74,3 +79,4 @@ void _load_page_table(void *page_directory_addr);
         __asm__ inline volatile ("pushl %[v]\npopfl"::[v] "rm" (a)); \
     } while (0)
 
+#endif

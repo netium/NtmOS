@@ -22,8 +22,16 @@ __attribute__ ((interrupt)) void int00h_handler(interrupt_frame_t *frame, unsign
 
 }
 
+__attribute__ ((interrupt)) void int0dh_handler(interrupt_frame_t *frame, unsigned int error_code) {
+    char s[256];
+    k_sprintf(s, "#GP Exception with error code: %x", error_code);
+    k_printf(s);
+    halt();
+}
+
 // Programmable internal timer interrrupt
-__attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
+ void int20h_handler() {
+
     _io_out8(PIC0_OCW2, 0x60);
 
     g_timer_control.tick++;
@@ -61,14 +69,12 @@ __attribute__ ((interrupt)) void int20h_handler(interrupt_frame_t *frame) {
     }
 
     if (1 == time_to_switch_task) {
-        sti();
         g_task_switch_timer->pf(g_task_switch_timer);
     }
 }
 
 // Keyboard interrupt
-__attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
-    
+void int21h_handler() {
      unsigned char status;
      char keycode;
 
@@ -88,12 +94,12 @@ __attribute__ ((interrupt)) void int21h_handler(interrupt_frame_t *frame) {
 }
 
 // COM ports interrupt
-__attribute__ ((interrupt)) void int24h_handler(interrupt_frame_t *frame) {
+void int24h_handler() {
     // This is for COM ports
 }
 
 // Mouse interrupt
-__attribute__ ((interrupt)) void int2ch_handler(interrupt_frame_t *frame) {
+void int2ch_handler() {
     unsigned char data;
 
     _io_out8(PIC1_OCW2, 0x64);
@@ -113,10 +119,10 @@ __attribute__ ((interrupt)) void int2ch_handler(interrupt_frame_t *frame) {
     write_serial(COM1_PORT, data);
 }
 
-__attribute__ ((interrupt)) void int27h_handler(interrupt_frame_t *frame) {
+void int27h_handler() {
     _io_out8(PIC0_OCW2, 0x67);
 }
 
-__attribute__ ((interrupt)) void int80h_handler(interrupt_frame_t *frame) {
-    sti();    // It's for system call, so can enable interrupt
+void int80h_handler() {
+    k_printf("System call interrupt triggered");
 }

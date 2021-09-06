@@ -2,6 +2,7 @@
 // Under GPLv2.0 lincense
 
 #include "kernel_functions.h"
+#include "segments.h"
 #include "kernel_inits.h"
 #include "gui.h"
 #include "k_heap.h"
@@ -58,6 +59,10 @@ void kernel_main(void) {
 
 	k_printf("Init mouse completed!");
 
+	init_process_management();
+
+	k_printf("Init process management subsystem completed");
+
 	k_printf("Kernel is running......");
 
 	process_t * current_task = initial_tasks();
@@ -71,12 +76,17 @@ void kernel_main(void) {
 	k_sprintf(str, "New task %x added", (unsigned int)new_task);
 	k_printf(str);
 
+	kern_exec(current_task);
+	
 	task_main(current_task);
 
 	// Done remove this statement, as it will casue the kernel main fucntion to return, 
 	// and as this function is the entry point for kernel execution file, it will make let the function return back to an random address
 	// and cause the virtual machine to complain about the crash.
 	while(1) halt();
+
+	k_printf("kernel end");
+	_panic();
 
 	return;
 }

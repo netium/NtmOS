@@ -34,3 +34,43 @@ void pfree(unsigned long addr) {
     _panic();
 }
 
+
+// From here is for the process userspace memory allocation and tracking
+
+#define N_MAX_PROCESS_MEM_SLOTS (64)
+
+static char s_process_mem_slot[N_MAX_PROCESS_MEM_SLOTS] = {0};
+
+int proc_umem_alloc() {
+    for (int i = 0; i < N_MAX_PROCESS_MEM_SLOTS; i++) {
+        if (!s_process_mem_slot[i])
+        return i;
+    }
+    return -1;
+}
+
+void proc_umem_free(int i) {
+    // Out of boundary
+    if (i < 0 || i >= N_MAX_PROCESS_MEM_SLOTS)
+        _panic();
+
+    // Try to free a unused slot
+    if (!s_process_mem_slot[i])
+        _panic();
+
+    s_process_mem_slot[i] = 0;
+}
+
+size_t get_proc_umem_start_address (int i) {
+    if (i < 0 || i >= N_MAX_PROCESS_MEM_SLOTS)
+        _panic();
+
+    return 0x4000000 + (i << 20);
+}
+
+size_t get_proc_umem_end_address (int i) {
+    if (i < 0 || i >= N_MAX_PROCESS_MEM_SLOTS)
+        _panic();
+
+    return 0x4000000 + (i << 20) + 0x100000;
+}

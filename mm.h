@@ -46,4 +46,9 @@ typedef union {
 unsigned long palloc();
 void pfree(unsigned long addr);
 
+int proc_umem_alloc();
+void proc_umem_free();
+size_t get_proc_umem_start_address(int i);
+size_t get_proc_umem_end_address(int i);
+
 #endif

@@ -2,6 +2,7 @@
 #include "kern_basic.h"
 #include "gui.h"
 #include "kernel_functions.h"
+#include "segments.h"
 #include "interrupt_handlers.h"
 #include "kernel_inits.h"
 #include "k_heap.h"
@@ -13,6 +14,12 @@
 tss_t g_tss3 __attribute__((aligned(4)));
 tss_t g_tss4 __attribute__((aligned(4)));
 
+#define N_MAX_PROCESSES (64)
+#define N_TSS_START_SLOT_IN_GDT (16)
+#define N_LDT_SEG_START_SLOT_IN_GDT (80)
+
+static process_t s_processes[N_MAX_PROCESSES] __attribute__((aligned(4))) = {0};
+
 process_t *g_current_task = 0;
 process_t *g_idle_task = 0;
 process_t *g_ready_task_queue_head = 0;
@@ -20,6 +27,9 @@ process_t **g_ready_task_queue_tail_pointer = &g_ready_task_queue_head;
 process_t *g_sleep_task_queue_head = 0;
 process_t *g_finished_task_queue = 0;
 process_t *g_io_blocked_task_queue_head = 0;
+
+// simple userspace code for test
+unsigned char simpleapp_data[] = {0x31, 0xdb, 0x43, 0xb8, 0x01, 0x00, 0x00, 0x00, 0xcd, 0x80, 0xeb, 0xf4};
 
 timer_t *g_task_switch_timer = 0;
 
@@ -38,6 +48,26 @@ void process_keyboard_event(process_t *task, keyboard_event_t *process_keyboard_
 void process_mouse_event(process_t *task, mouse_event_t *p_mouse_event);
 
 void process_timer_event(process_t *task, timer_event_t *p_timer_event);
+
+void init_process_management() {
+	for (int i = 0; i < N_MAX_PROCESSES; i++) {
+		s_processes[i].tss_entry_id = i;
+		s_processes[i].status = TASK_UNUSED;
+
+		// Install the task's TSS to the GDT
+		install_tss_to_gdt(N_TSS_START_SLOT_IN_GDT + i, &s_processes[i].tss, sizeof(s_processes[i].tss));
+
+		// Install the task's LDT to the GDT
+		install_ldt_to_gdt(N_LDT_SEG_START_SLOT_IN_GDT + i, &s_processes[i].ldt, sizeof(s_processes[i].ldt));
+
+		// Initial process task LDT table
+		install_seg_to_ldt(&s_processes[i].ldt, 0, 0x4000000 + (i * 0x100000), 0x100000 - 1, 1);
+		install_seg_to_ldt(&s_processes[i].ldt, 1, 0x4000000 + (i * 0x100000), 0x100000 - 1, 0);
+
+		// Set the TSS ldtr value
+		s_processes[i].tss.ldtr = (N_LDT_SEG_START_SLOT_IN_GDT + i) << 3;
+	}
+}
 
 void idle_task_main(process_t *task)
 {
@@ -96,7 +126,6 @@ void switch_task(timer_t *timer)
 	k_printf("Start to switch process...");
 	process_t *cur_task = g_current_task;
 	unsigned int tss_id = cur_task->tss_entry_id;
-	unsigned int sched_task_tss_id = tss_id == 3 ? 4 : 3;
 
 	process_t *sched_task = g_ready_task_queue_head;
 	if (0 == sched_task)
@@ -123,32 +152,34 @@ void switch_task(timer_t *timer)
 
 	sched_task->status = TASK_RUNNING;
 
-	sched_task->tss_entry_id = sched_task_tss_id;
-
 	sched_task->next = 0x0;
-
-	set_task_into_gdt(sched_task_tss_id, &sched_task->tss, sizeof(tss_t));
 
 	g_current_task = sched_task;
 
 	k_set_timer_time(timer, 1000);
 
 	char msg[256];
-	k_sprintf(msg, "Switch to task: %x at gdt %x", (unsigned int)sched_task, sched_task->tss_entry_id);
-	k_printf(msg);
-
-	k_itoa(sched_task->pid, msg, 16);
+	k_sprintf(msg, "Switch to task at %x for process slot id: %x", (unsigned int)sched_task, sched_task->tss_entry_id);
 	k_printf(msg);
 
 	set_eflags(eflags);
 
-	_switch_task(0, g_current_task->tss_entry_id << 3);
+	_switch_task(0, (N_TSS_START_SLOT_IN_GDT + g_current_task->tss_entry_id) << 3);
 }
 
 process_t *task_alloc()
 {
-	process_t *task = k_malloc(sizeof(process_t));
-	if (0 != task)
+	process_t *task = NULL;
+
+	// Find the unused task slot
+	for (int i = 0; i < N_MAX_PROCESSES; i++) {
+		if (s_processes[i].status == TASK_UNUSED) {
+			task  = &s_processes[i];
+			break;
+		}
+	}
+
+	if (NULL != task)
 	{
 		task->status = TASK_ALLOC;
 		task->pid = g_next_task_id;
@@ -161,13 +192,20 @@ process_t *task_alloc()
 void task_free(process_t *task)
 {
 	if (0 == task)
-		return;
+		_panic();	// task pointer shall not be NULL
+
+	if (task->pid == 0)
+		_panic();	// shall not free an unused task slot
+
+	task->pid = 0;
+
+	task->status = TASK_UNUSED;
 
 	if (0 != task->kern_stack)
 		k_free(task->kern_stack);
 
-	if (0 != task->data)
-		k_free(task->data);
+	if (0 != task->data_stack)
+		k_free(task->data_stack);
 }
 
 void task_init(process_t *task, int data_size, int kern_stack_size)
@@ -185,14 +223,11 @@ void task_init(process_t *task, int data_size, int kern_stack_size)
 	task->pid = g_next_task_id;
 	atom_inc(g_next_task_id);
 
-	task->tss_entry_id = 0;
-
 	task->console = 0;
 
 	task->next = 0;
 
 	initial_task_event_queue(&task->event_queue);
-	task->tss.ldtr = 0;
 	task->tss.iopb_offset = 0x40000000;
 	task->tss.eflags = 0x202;
 	task->tss.eax = 0x0;
@@ -208,11 +243,11 @@ void task_init(process_t *task, int data_size, int kern_stack_size)
 	task->tss.es = 0x2 << 3;
 	task->tss.fs = 0x2 << 3;
 	task->tss.gs = 0x2 << 3;
-	task->tss.cr3 = GPT_TABLE_PHY_START_ADDR;
+	task->tss.cr3 = (size_t)GPT_TABLE_PHY_START_ADDR;
 	task->tss.esp = (unsigned int)(task->kern_stack) + task->kern_stack_size - 4;
 	task->tss.eip = 0x0; // Temporarily set to 0x0, but will overrided to the new task start address
 
-	task->tss.esp0 = task->tss.esp;
+	task->tss.esp0 = (0x1 << 3);
 	task->tss.ss0 = task->tss.ss;
 
 	if (g_current_task > 0)
@@ -221,6 +256,9 @@ void task_init(process_t *task, int data_size, int kern_stack_size)
 		task->ppid = 0;
 
 	task->status = TASK_INIT;
+
+	// Hook: to copy the sample app code to the userspace memory:
+	k_memcpy((void *)get_proc_umem_start_address(task->tss_entry_id), simpleapp_data, sizeof(simpleapp_data));	
 }
 
 void initial_task_event_queue(simple_interrupt_event_queue_t *event_queue)
@@ -262,24 +300,6 @@ void put_task_to_ready(process_t *task)
 	g_ready_task_queue_tail_pointer = &task->next;
 }
 
-int set_task_into_gdt(unsigned int slot, void *base_addr, unsigned int limit)
-{
-	if (slot >= 8192)
-		return -1;
-
-	gdt_entry_t *entry = ((gdt_entry_t *)GDT_TABLE_START_ADDR + slot);
-	entry->fields.base_low_word = (unsigned int)base_addr & 0xFFFF;
-	entry->fields.base_mid_byte = ((unsigned int)base_addr >> 16) & 0xFF;
-	entry->fields.base_high_byte = ((unsigned int)base_addr >> 24) & 0xFF;
-	entry->fields.limit_low_word = (unsigned int)limit & 0xFFFF;
-	entry->fields.limit_high = ((unsigned int)limit >> 16) & 0xF;
-	entry->fields.access.access_byte = 0x89;
-	entry->fields.gr = 0x0;
-	entry->fields.sz = 0x1;
-
-	return 0;
-}
-
 process_t *initial_tasks()
 {
 
@@ -318,9 +338,11 @@ unsigned int initial_default_task()
 
 	task->kern_stack_size = 1024 * 1024;
 
-	task->pid = 0;
+	size_t kern_stack_size = 8192;
+	task->kern_stack = k_malloc(kern_stack_size);
+	task->kern_stack_size = kern_stack_size;
 
-	task->tss_entry_id = 0;
+	task->pid = 0;
 
 	task->console = 0;
 
@@ -328,7 +350,6 @@ unsigned int initial_default_task()
 
 	initial_task_event_queue(&task->event_queue);
 
-	task->tss.ldtr = 0;
 	task->tss.iopb_offset = 0x40000000;
 	task->tss.eflags = 0x202;
 	task->tss.eax = 0x0;
@@ -345,8 +366,9 @@ unsigned int initial_default_task()
 	task->tss.fs = 0x2 << 3;
 	task->tss.gs = 0x2 << 3;
 	task->tss.esp = 0;
+	task->tss.esp = (unsigned int)(task->kern_stack) + task->kern_stack_size - 4;
 	task->tss.eip = 0x0;
-	task->tss.cr3 = GPT_TABLE_PHY_START_ADDR;
+	task->tss.cr3 = (size_t)GPT_TABLE_PHY_START_ADDR;
 	task->tss.ss0 = task->tss.ss;
 	task->tss.esp0 = task->tss.esp;
 
@@ -358,11 +380,13 @@ unsigned int initial_default_task()
 
 	g_current_task = task;
 
-	int gdt_slot = 3;
+	// Hook: to copy the sample app code to the userspace memory:
+	k_memcpy((void *)get_proc_umem_start_address(task->tss_entry_id), simpleapp_data, sizeof(simpleapp_data));	
+	unsigned short ldtr = (N_LDT_SEG_START_SLOT_IN_GDT + task->tss_entry_id) << 3;
 
-	set_task_into_gdt(gdt_slot, &task->tss, sizeof(tss_t));
+	load_ldt(ldtr);
 
-	return gdt_slot;
+	return N_TSS_START_SLOT_IN_GDT + task->tss_entry_id;
 }
 
 int enqueue_event_queue(simple_interrupt_event_queue_t *queue, simple_interrupt_event_node_t *p_node)
@@ -406,7 +430,7 @@ void process_keyboard_event(process_t *task, keyboard_event_t *process_keyboard_
 {
 	tui_putchar(process_keyboard_event->data);
 	if (process_keyboard_event->data == 'A')
-		__asm__ inline volatile("int %0" ::"N"(0x40));
+		__asm__ inline volatile("int %0" ::"N"(0x80));
 }
 
 void process_mouse_event(process_t *task, mouse_event_t *p_mouse_event)
@@ -422,4 +446,23 @@ void process_timer_event(process_t *task, timer_event_t *p_timer_event)
 	{
 		p_timer_event->p_timer->pf(p_timer_event->p_timer);
 	}
+}
+
+process_t* kern_fork(process_t *source) {
+	if (NULL == source)
+		_panic();
+
+	process_t * new = task_alloc();
+	task_init(new, source->data_size, source->kern_stack);
+
+	k_memcpy(new->data_stack, source->data_stack, source->data_size);		
+}
+
+void kern_exec(process_t *task) {
+	unsigned short ldtr = (N_LDT_SEG_START_SLOT_IN_GDT + task->tss_entry_id) << 3;
+	load_ldt(ldtr);
+	_jump_usermode(
+		0x0, // start address offset related to LDT code seg base
+		1024 * 1024 - 4	// stack stop offset related to the LDT code seg base
+		);
 }

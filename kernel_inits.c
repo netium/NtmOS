@@ -9,6 +9,7 @@
 #include "serial_port.h"
 #include "k_timer.h"
 #include "tasks.h"
+#include "interrupt_stubs.h"
 
 static unsigned char mouse_buf[3];
 static int mouse_dx = 0, mouse_dy = 0, mouse_button = 0;
@@ -55,45 +56,6 @@ void initial_global_page_table() {
     _load_page_table((void *) pde_phy_start_addr);
 }
 
-void initial_gdt() {
-    gdt_entry_t *p_gdt_entries = GDT_TABLE_START_ADDR;
-
-    p_gdt_entries[0].dwords[0] = 0x0;
-    p_gdt_entries[0].dwords[1] = 0x0;
-
-    p_gdt_entries[1].dwords[0] = 0x0000FFFF;
-    p_gdt_entries[1].dwords[1] = 0x00CF9A00;
-
-    p_gdt_entries[2].dwords[0] = 0x0000FFFF;
-    p_gdt_entries[2].dwords[1] = 0x00CF9200;
-
-    for (int i = 3; i < N_GDT_ENTRIES; i++) {
-        p_gdt_entries[i].dwords[0] = 0x0;
-        p_gdt_entries[i].dwords[1] = 0x0;
-    }
-
-    gdtr_t gdtr;
-    gdtr.n_entries = (N_GDT_ENTRIES << 3) - 1;
-    gdtr.p_start_addr = GDT_TABLE_START_ADDR;
-    load_gdt(gdtr);
-}
-
-int set_tss_into_gdt(unsigned int slot, void *base_addr, unsigned int limit) {
-    if (slot >= 8192) return -1;
-
-    gdt_entry_t *entry = ((gdt_entry_t *)GDT_TABLE_START_ADDR) + slot;
-    entry->fields.base_low_word = (unsigned int)base_addr & 0xFFFF;
-    entry->fields.base_mid_byte = ((unsigned int)base_addr >> 16) & 0xFF;
-    entry->fields.base_high_byte = ((unsigned int)base_addr >> 24) & 0xFF;
-    entry->fields.limit_low_word = (unsigned int)limit & 0xFFFF;
-    entry->fields.limit_high = ((unsigned int)limit >> 16) & 0xF; 
-    entry->fields.access.access_byte = 0x89;
-    entry->fields.gr = 0x0;
-    entry->fields.sz = 0x1;
-
-    return 0;
-}
-
 void initial_idt() {
 
     idt_entry_t *p_idt_entries = IDT_TABLE_START_ADDR;
@@ -107,13 +69,15 @@ void initial_idt() {
     }
 
     // set_interrupt(0x00, 0x01, int00h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
-    set_interrupt(0x20, 0x01, int20h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
-    set_interrupt(0x21, 0x01, int21h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
-    set_interrupt(0x2c, 0x01, int2ch_handler, IDT_INTERRUPT_GATE, 0x0, 1);
-    set_interrupt(0x27, 0x01, int27h_handler, IDT_INTERRUPT_GATE, 0x0, 1);
+    // set_interrupt(0x0d, 0x01, int0dh_handler, IDT_INTERRUPT_GATE, 0x0, 1);
+    set_interrupt(0x20, 0x01, int20h_handler_stub, IDT_INTERRUPT_GATE, 0x0, 1);
+    set_interrupt(0x21, 0x01, int21h_handler_stub, IDT_INTERRUPT_GATE, 0x0, 1);
+    set_interrupt(0x24, 0x01, int24h_handler_stub, IDT_INTERRUPT_GATE, 0x0, 1);
+    set_interrupt(0x27, 0x01, int27h_handler_stub, IDT_INTERRUPT_GATE, 0x0, 1);
+    set_interrupt(0x2c, 0x01, int2ch_handler_stub, IDT_INTERRUPT_GATE, 0x0, 1);
 
     // Syscall
-    set_interrupt(0x80, 0x01, int80h_handler, IDT_TRAP_GATE, 0x3, 1);
+    set_interrupt(0x80, 0x01, int80h_handler_stub, IDT_TRAP_GATE, 0x3, 1);
 
     idtr_t idtr;
     idtr.n_entries = N_IDT_ENTRIES << 3;
