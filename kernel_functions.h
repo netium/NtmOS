@@ -33,6 +33,8 @@ void _putchar(int ch);
 
 void _load_page_table(void *page_directory_addr);
 
+void _jump_usermode(void * uip, void *usp);
+
 #define cli() do { \
         __asm__ inline volatile ("cli"); \
     } while (0) 

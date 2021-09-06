@@ -69,8 +69,6 @@ typedef struct st_process_t {
     page_directory_entry_t page_dir[1024];
 } process_t ;
 
-extern tss_t g_tss3, g_tss4;
-
 extern process_t * g_current_task;
 
 extern process_t * g_ready_task_queue_head;
@@ -98,6 +96,8 @@ void start_task(process_t * task, void * start_addr);
 void initial_task_event_queue(simple_interrupt_event_queue_t * event_queue);
 
 process_t * initial_tasks();
+
+void kern_exec(process_t *task);
 
 int enqueue_event_queue(simple_interrupt_event_queue_t *queue, simple_interrupt_event_node_t *p_node);
 

@@ -24,6 +24,8 @@ GLOBAL _atom_inc
 
 GLOBAL _load_page_table
 
+GLOBAL _jump_usermode
+
 section .text
 
 _io_out8:
@@ -91,3 +93,27 @@ _load_page_table:
 	MOV eax, [esp + 4]
 	MOV cr3, eax
 	RET 
+
+_jump_usermode:
+	PUSH ebp
+	MOV ebp, esp
+	; Refer to https://wiki.osdev.org/Getting_to_Ring_3
+	; Set data segement register to point to the LDT data segment descriptor
+	XOR eax, eax
+	MOV ax, (1 << 3) | 0x7
+	MOV ds, ax
+	MOV es, ax
+	MOV fs, ax
+	MOV gs, ax
+
+	; Set up the stack frame iret expects
+	MOV eax, DWORD ss:[ebp + 0x0c]
+	push (1 << 3) | 0x7
+	push eax
+	pushf
+	pop eax
+	or eax, 0x200
+	push eax
+	push (0 << 3) | 0x7
+	push DWORD ss:[ebp + 0x08]
+	iret 

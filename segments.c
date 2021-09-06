@@ -79,7 +79,7 @@ int uninstall_gdt_entry(size_t slot)
 	return 0;
 }
 
-int install_seg_to_ldt(void *ldt_addr, size_t slot, void *base_addr, size_t limit) {
+int install_seg_to_ldt(void *ldt_addr, size_t slot, void *base_addr, size_t limit, uint8_t is_code) {
 	if (slot >= N_LDT_ENTRIES)
 		_panic();
 
@@ -89,8 +89,21 @@ int install_seg_to_ldt(void *ldt_addr, size_t slot, void *base_addr, size_t limi
 	entry->fields.base_high_byte = ((size_t)base_addr >> 24) & 0xFF;
 	entry->fields.limit_low_word = (size_t)limit & 0xFFFF;
 	entry->fields.limit_high = ((size_t)limit >> 16) & 0xF;
-	entry->fields.access.access_byte = 0x89;
+	entry->fields.access.S = 1;
+	entry->fields.DB = 1;
+	if (is_code) {
+		entry->fields.access.ac = 1;
+		entry->fields.access.rw = 1;
+		entry->fields.access.dc = 0;
+		entry->fields.access.ex = 1;
+	}
+	else {
+		entry->fields.access.ac = 1;
+		entry->fields.access.rw = 1;
+		entry->fields.access.dc = 0;
+		entry->fields.access.ex = 0;
+	}
 	entry->fields.access.DPL = 0x3;
+	entry->fields.access.P = 1;
 	entry->fields.G = 0x0;
-	entry->fields.DB = 0x1;
 }

@@ -61,8 +61,8 @@ void init_process_management() {
 		install_ldt_to_gdt(N_LDT_SEG_START_SLOT_IN_GDT + i, &s_processes[i].ldt, sizeof(s_processes[i].ldt));
 
 		// Initial process task LDT table
-		install_seg_to_ldt(&s_processes[i].ldt, 0, 0x4000000 + (i * 0x100000), 0x100000);
-		install_seg_to_ldt(&s_processes[i].ldt, 1, 0x4000000 + (i * 0x100000), 0x100000);
+		install_seg_to_ldt(&s_processes[i].ldt, 0, 0x4000000 + (i * 0x100000), 0x100000 - 1, 1);
+		install_seg_to_ldt(&s_processes[i].ldt, 1, 0x4000000 + (i * 0x100000), 0x100000 - 1, 0);
 
 		// Set the TSS ldtr value
 		s_processes[i].tss.ldtr = (N_LDT_SEG_START_SLOT_IN_GDT + i) << 3;
@@ -160,9 +160,6 @@ void switch_task(timer_t *timer)
 
 	char msg[256];
 	k_sprintf(msg, "Switch to task at %x for process slot id: %x", (unsigned int)sched_task, sched_task->tss_entry_id);
-	k_printf(msg);
-
-	k_itoa(sched_task->pid, msg, 16);
 	k_printf(msg);
 
 	set_eflags(eflags);
@@ -341,6 +338,10 @@ unsigned int initial_default_task()
 
 	task->kern_stack_size = 1024 * 1024;
 
+	size_t kern_stack_size = 8192;
+	task->kern_stack = k_malloc(kern_stack_size);
+	task->kern_stack_size = kern_stack_size;
+
 	task->pid = 0;
 
 	task->console = 0;
@@ -365,6 +366,7 @@ unsigned int initial_default_task()
 	task->tss.fs = 0x2 << 3;
 	task->tss.gs = 0x2 << 3;
 	task->tss.esp = 0;
+	task->tss.esp = (unsigned int)(task->kern_stack) + task->kern_stack_size - 4;
 	task->tss.eip = 0x0;
 	task->tss.cr3 = (size_t)GPT_TABLE_PHY_START_ADDR;
 	task->tss.ss0 = task->tss.ss;
@@ -453,5 +455,14 @@ process_t* kern_fork(process_t *source) {
 	process_t * new = task_alloc();
 	task_init(new, source->data_size, source->kern_stack);
 
-	k_memcpy(new->data_stack, source->data_size, source->data_size);		
+	k_memcpy(new->data_stack, source->data_stack, source->data_size);		
+}
+
+void kern_exec(process_t *task) {
+	unsigned short ldtr = (N_LDT_SEG_START_SLOT_IN_GDT + task->tss_entry_id) << 3;
+	load_ldt(ldtr);
+	_jump_usermode(
+		0x0, // start address offset related to LDT code seg base
+		1024 * 1024 - 4	// stack stop offset related to the LDT code seg base
+		);
 }

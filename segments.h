@@ -49,6 +49,6 @@ int install_tss_to_gdt(size_t slot, void *base_addr, size_t limit);
 
 int uninstall_gdt_entry(size_t slot);
 
-int install_seg_to_ldt(void *ldt_addr, size_t slot, void *base_addr, size_t limit);
+int install_seg_to_ldt(void *ldt_addr, size_t slot, void *base_addr, size_t limit, uint8_t is_code);
 
 #endif
