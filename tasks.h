@@ -10,33 +10,32 @@
 
 // refer to: https://wiki.osdev.org/Task_State_Segment
 typedef struct {
-    // __uint16_t link, rev1;
-    unsigned short link, rev1;
-    unsigned int esp0;
-    unsigned short ss0, rev2;
-    unsigned int esp1;
-    unsigned short ss1, rev3;
-    unsigned int esp2;
-    unsigned short ss2, rev4;
-    unsigned int cr3;
-    unsigned int eip;
-    unsigned int eflags;
-    unsigned int eax;
-    unsigned int ecx;
-    unsigned int edx;
-    unsigned int ebx;
-    unsigned int esp;
-    unsigned int ebp;
-    unsigned int esi;
-    unsigned int edi;
-    unsigned short es, rev5;
-    unsigned short cs, rev6;
-    unsigned short ss, rev7;
-    unsigned short ds, rev8;
-    unsigned short fs, rev9;
-    unsigned short gs, rev10;
-    unsigned short ldtr, rev11;
-    unsigned short rev12, iopb_offset;
+    uint16_t link, rev1;
+    uint32_t esp0;
+    uint16_t ss0, rev2;
+    uint32_t esp1;
+    uint16_t ss1, rev3;
+    uint32_t esp2;
+    uint16_t ss2, rev4;
+    uint32_t cr3;
+    uint32_t eip;
+    uint32_t eflags;
+    uint32_t eax;
+    uint32_t ecx;
+    uint32_t edx;
+    uint32_t ebx;
+    uint32_t esp;
+    uint32_t ebp;
+    uint32_t esi;
+    uint32_t edi;
+    uint16_t es, rev5;
+    uint16_t cs, rev6;
+    uint16_t ss, rev7;
+    uint16_t ds, rev8;
+    uint16_t fs, rev9;
+    uint16_t gs, rev10;
+    uint16_t ldtr, rev11;
+    uint16_t rev12, iopb_offset;
 } tss_t;
 
 typedef enum {
@@ -52,18 +51,18 @@ typedef enum {
 typedef struct st_process_t process_t;
 
 typedef struct st_process_t {
-    size_t pid;   // process pid
-    size_t tss_entry_id;  // tss pid in GDT
+    uint32_t pid;   // process pid
+    uint32_t tss_entry_id;  // tss pid in GDT
     process_status_t   status;  // process status
     ldt_entry_t ldt[2]; // offset: + 0x0c
     tss_t tss;  // offset: + 0x1c
-    size_t umem_slot;
+    uint32_t umem_slot;
     simple_interrupt_event_queue_t event_queue;
     file_t * files[12];
     void * data_stack;        // base address of data stack segment
-    size_t data_size;
+    uint32_t data_size;
     void * kern_stack;  // base address of kernel stack segment
-    size_t kern_stack_size;
+    uint32_t kern_stack_size;
     process_t *next;
     void * console; // No used now, but will used for determine which task takes the current activate console
     long ppid;  // parent process pid
