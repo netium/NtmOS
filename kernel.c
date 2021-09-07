@@ -10,6 +10,7 @@
 #include "tasks.h"
 #include "keyboard.h"
 #include "synchron.h"
+#include "harddisk.h"
 
 /*
 extern layer_t * bg_window;
@@ -58,6 +59,12 @@ void kernel_main(void) {
 	_io_out8(PIC1_IMR, 0xef);	// enable mouse
 
 	k_printf("Init mouse completed!");
+
+	init_harddisks();
+	k_printf("Init HDD completed!");
+
+	k_printf("Halt here for debug harddisk read/write");
+	halt();
 
 	init_process_management();
 
