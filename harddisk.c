@@ -78,27 +78,26 @@ int ata_detect() {
 }
 
 int ata_detect_hdd(uint16_t port, int is_primary, uint16_t *identify_data_buf) {
-	_io_out8(port + DRIVE_HEAD_REGISTER_OFFSET, )
-	_io_out8(0x1f6, 0xa0);
-	_io_out8(0x1f2, 0x00);
-	_io_out8(0x1f3, 0x00);
-	_io_out8(0x1f4, 0x00);
-	_io_out8(0x1f5, 0x00);
-	_io_out8(0x1f7, 0xec);
+	_io_out8(port + DRIVE_HEAD_REGISTER_OFFSET, 0xa0);
+	_io_out8(port + SECTOR_COUNT_REGISTER_OFFSET, 0x00);
+	_io_out8(port + LBA_LO_REGISTER_OFFSET, 0x00);
+	_io_out8(port + LBA_MID_REGISTER_OFFSET, 0x00);
+	_io_out8(port + LBA_HI_REGISTER_OFFSET, 0x00);
+	_io_out8(port + STATUS_REGISTER_OFFSET 0xec);
 
 	k_printf("Start to check BSY status");
 
-	uint8_t status = _io_in8(0x1f7);
+	uint8_t status = _io_in8(port + STATUS_REGISTER_OFFSET);
 
-	while (_io_in8(0x1f7) & 0x80 == 1);
+	while (_io_in8(port + STATUS_REGISTER_OFFSET) & BSY == 1);
 
 	if (status == 0) {
 		k_printf("No harddisk on primary found!");
 		return 0;
 	}
 
-	uint8_t lba_mid = _io_in8(0x1f4);
-	uint8_t lba_hi = _io_in8(0x1f5);
+	uint8_t lba_mid = _io_in8(port + LBA_MID_REGISTER_OFFSET);
+	uint8_t lba_hi = _io_in8(port + LBA_HI_REGISTER_OFFSET);
 
 	if (lba_mid != 0 && lba_hi != 0) {
 		k_printf("No ATA harddisk on primary!");
@@ -107,38 +106,41 @@ int ata_detect_hdd(uint16_t port, int is_primary, uint16_t *identify_data_buf) {
 
 	k_printf("start to poll DRQ");
 
-	while (_io_in8(0x1f7) & DRQ == 0);
+	while (_io_in8(port + STATUS_REGISTER_OFFSET) & DRQ == 0);
 
 	uint16_t identify_data[256];
 
 	for (int i = 0; i < 256; i++) {
-		identify_data[i] = _io_in16(0x1f0); 
+		identify_data[i] = _io_in16(port); 
 	}
 }
 
 // Implementation refer to https://wiki.osdev.org/ATA_read/write_sectors
 
-int ata_pio_lba_read(uint8_t * buff, size_t abs_lba_sector, size_t num_sectors) {
+int ata_pio_lba_read(hdd_device_t* hdd, uint8_t * buff, size_t abs_lba_sector, size_t num_sectors) {
+	if (NULL == hdd || !hdd->is_present)
+		_panic();
+
 	uint16_t * buffw = (uint16_t *)buff;
 
-	_io_out8(0x01f6, (uint8_t)(((abs_lba_sector >> 24) & 0x0f) | 0xe0));	// port to send drive and bit 24-27 of LBA, also set bit 6 for LBA mode
+	_io_out8(hdd->io_port_base + DRIVE_HEAD_REGISTER_OFFSET, (uint8_t)(((abs_lba_sector >> 24) & 0x0f) | 0xe0));	// port to send drive and bit 24-27 of LBA, also set bit 6 for LBA mode
 
-	_io_out8(0x01f2, (uint8_t)num_sectors);	// send number of sectors
+	_io_out8(hdd->io_port_base + SECTOR_COUNT_REGISTER_OFFSET, (uint8_t)num_sectors);	// send number of sectors
 
-	_io_out8(0x01f3, (uint8_t)abs_lba_sector);
+	_io_out8(hdd->io_port_base + LBA_LO_REGISTER_OFFSET, (uint8_t)abs_lba_sector);
 
-	_io_out8(0x01f4, (uint8_t)(abs_lba_sector >> 8));
+	_io_out8(hdd->io_port_base + LBA_MID_REGISTER_OFFSET, (uint8_t)(abs_lba_sector >> 8));
 
-	_io_out8(0x01f5, (uint8_t)(abs_lba_sector >> 16));
+	_io_out8(hdd->io_port_base + LBA_HI_REGISTER_OFFSET, (uint8_t)(abs_lba_sector >> 16));
 
-	_io_out8(0x01f7, 0x20);	// read with retry
+	_io_out8(hdd->io_port_base + STATUS_REGISTER_OFFSET, 0x20);	// read with retry
 
-	while (_io_in8(0x1f7) & BSY != 0); 
+	while (_io_in8(hdd->io_port_base + STATUS_REGISTER_OFFSET) & BSY != 0); 
 
 	size_t total_words = num_sectors * 256;	//  256 bytes per sector
 
 	for (int i = 0; i < total_words; i++) {
-		buffw[i] = _io_in16(0x01f0);
+		buffw[i] = _io_in16(hdd);
 	}
 
 	return total_words << 1;

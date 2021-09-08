@@ -10,6 +10,6 @@ typedef struct {
 } hdd_device_t;
 
 void init_harddisks();
-int ata_pio_lba_read(uint8_t * buff, size_t sector_lba, size_t num_sectors); 
+int ata_pio_lba_read(hdd_device_t* hdd, uint8_t * buff, size_t sector_lba, size_t num_sectors); 
 
 #endif
