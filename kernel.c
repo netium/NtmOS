@@ -11,6 +11,7 @@
 #include "keyboard.h"
 #include "synchron.h"
 #include "harddisk.h"
+#include "fs.h"
 
 /*
 extern layer_t * bg_window;
@@ -62,6 +63,9 @@ void kernel_main(void) {
 
 	init_harddisks();
 	k_printf("Init HDD completed!");
+
+	init_root_filesystem();
+	k_printf("Root filesystem initialization complete!");
 
 	k_printf("Halt here for debug harddisk read/write");
 	halt();
