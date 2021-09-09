@@ -42,68 +42,48 @@ enum ata_pio_status_register_bit {
 	BSY = 1 << 7,	// Indicates the drive is preparing to send/receive data (wait for it to clear). In case of 'hang' (it never clears), do a software reset.
 };
 
-#define N_MAX_HDD (4)
-hdd_device_t s_hdd_devices[N_MAX_HDD] = {0};
+
+hdd_device_t g_hdd_devices[N_MAX_HDD] = {0};
 
 int ata_detect();
 int ata_detect_hdd(uint16_t port, int is_primary, uint16_t *identify_data_buf);
 
 void init_harddisks() {
 	ata_detect();
-
-	k_printf("HDD detection complete!");
-
-	hdd_device_t *p_hdd_device = NULL;
-	for (int i = 0; i < N_MAX_HDD; i++) {
-		if (s_hdd_devices[i].is_present) {
-			p_hdd_device = &s_hdd_devices[i];
-			break;
-		}
-	}
-
-	if (p_hdd_device != NULL) {
-		uint8_t buff[512];
-		ata_pio_lba_read(p_hdd_device, buff, 0, 1);
-
-		char str[256];
-		for (int i = 0; i < 0x05; i++) {
-			k_sprintf(str, "hdd[%x] read: [%x]", i, buff[i]);
-			k_printf(str);
-		}
-	}	
 }
 
 int ata_detect() {
 	uint16_t scan_ports[] = {0x1f0, 0x170};
 
 	for (int i = 0; i < N_MAX_HDD; i++) {
-		s_hdd_devices[i].is_present = 0;
+		g_hdd_devices[i].is_present = 0;
 	}
 
 	char str[256];
 
 	int n = 0;
 	for (int i = 0; i < sizeof(scan_ports) / sizeof(scan_ports[0]); i++) {
-		int ret = ata_detect_hdd(scan_ports[i], 1, s_hdd_devices[n].identify_words);
+		int ret = ata_detect_hdd(scan_ports[i], 1, g_hdd_devices[n].identify_words);
 		if (ret == 0) {
-			s_hdd_devices[n].io_port_base = scan_ports[i];	
-			s_hdd_devices[n].is_present = 1;
-			s_hdd_devices[n].is_primary = 1;
+			g_hdd_devices[n].io_port_base = scan_ports[i];	
+			g_hdd_devices[n].is_present = 1;
+			g_hdd_devices[n].is_primary = 1;
+
+			// uint16_t 60 & 61 taken as a uint32_t contain the total number of 28 bit LBA addressable sectors on the drive.
+			g_hdd_devices[n].n_sector_lba28 = *((uint32_t *)&g_hdd_devices[n].identify_words[60]);
+			if (g_hdd_devices[n].n_sector_lba28 != 0) g_hdd_devices[n].is_lba28_support = 1;
+
+			k_sprintf(str, "Number of LBA28 sectors: %x", g_hdd_devices[n].n_sector_lba28);
+			k_printf(str);
+
+			// uint16_t 100 through 103 taken as a uint64_t contain the total number of 48 bit addressable sectors on the drive.
+			g_hdd_devices[n].n_sector_lba48 = *((uint64_t *)&g_hdd_devices[n].identify_words[100]);
+			if (g_hdd_devices[n].n_sector_lba48 != 0) g_hdd_devices[n].is_lba48_support = 1;
+
 			n++;
 			k_sprintf(str, "HDD found on port [%x]: Primary", scan_ports[i]);
 			k_printf(str);
 		}
-		/*
-		ret = ata_detect_hdd(scan_ports[i], 0, s_hdd_devices[n].identify_words);
-		if (ret == 0) {
-			s_hdd_devices[n].io_port_base = scan_ports[i];
-			s_hdd_devices[n].is_present = 1;
-			s_hdd_devices[n].is_primary= 0;
-			n++;
-			k_sprintf(str, "HDD found on port [%x]: Secondary", scan_ports[i]);
-			k_sprintf(str);
-		}
-		*/
 	}
 }
 
@@ -115,6 +95,9 @@ int ata_detect_hdd(uint16_t port, int is_primary, uint16_t *identify_data_buf) {
 	_io_out8(port + LBA_MID_REGISTER_OFFSET, 0x00);
 	_io_out8(port + LBA_HI_REGISTER_OFFSET, 0x00);
 	_io_out8(port + STATUS_REGISTER_OFFSET, 0xec);
+
+	for (int i = 0; i < 10; i++) 
+		_io_in8(port + STATUS_REGISTER_OFFSET);
 
 	uint8_t status = _io_in8(port + STATUS_REGISTER_OFFSET);
 
@@ -148,8 +131,8 @@ int ata_pio_lba_read(hdd_device_t* hdd, uint8_t * buff, size_t abs_lba_sector, s
 
 	uint8_t drive_head_value = (uint8_t)(((abs_lba_sector >> 24) & 0x0f) | 0xe0);
 
-	// if (!hdd->is_primary)
-	//	drive_head_value |= 0x10;
+	if (!hdd->is_primary)
+		drive_head_value |= 0x10;
 
 	_io_out8(hdd->io_port_base + DRIVE_HEAD_REGISTER_OFFSET, drive_head_value);	// port to send drive and bit 24-27 of LBA, also set bit 6 for LBA mode
 
@@ -165,7 +148,7 @@ int ata_pio_lba_read(hdd_device_t* hdd, uint8_t * buff, size_t abs_lba_sector, s
 
 	// According to OSDEV ATA PIO mode page: Many drives require a little time to respond to a "select", and push their status onto the bus. The suggestion is to read the Status register FIFTEEN TIMES, and only pay attention to the value returned by the last one -- after selecting a new master or slave device.
 	// So we read the status register 4 times here
-	for (int i = 0; i < 5; i++) 
+	for (int i = 0; i < 10; i++) 
 		_io_in8(hdd->io_port_base + STATUS_REGISTER_OFFSET);
 
 	// From the 5th time we will start to care about the value
@@ -181,4 +164,9 @@ int ata_pio_lba_read(hdd_device_t* hdd, uint8_t * buff, size_t abs_lba_sector, s
 	}
 
 	return total_words << 1;
+}
+
+int ata_pio_lba_write(hdd_device_t* hdd, uint8_t *buff, size_t sector_lba, size_t num_sectors) {
+	// No need to implement the write now
+	return -1;
 }
