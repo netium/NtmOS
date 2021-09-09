@@ -2,7 +2,7 @@
 #define _HARDDISK_H_
 
 typedef struct {
-	uint16_t io_ports_base;
+	uint16_t io_port_base;
 	uint16_t control_port_base;
 	int is_primary;
 	uint8_t is_present;
