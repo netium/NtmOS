@@ -80,7 +80,7 @@ void kernel_main(void) {
 
 	process_t * new_task = task_alloc();
 
-	task_init(new_task, 8192, 8192);
+	task_init(new_task, 8192, 8192 * 2);
 
 	start_task(new_task, task_main);
 
