@@ -66,7 +66,7 @@ void init_harddisks() {
 		ata_pio_lba_read(p_hdd_device, buff, 0, 1);
 
 		char str[256];
-		for (int i = 0; i < 0x10; i++) {
+		for (int i = 0; i < 0x05; i++) {
 			k_sprintf(str, "hdd[%x] read: [%x]", i, buff[i]);
 			k_printf(str);
 		}
@@ -93,6 +93,7 @@ int ata_detect() {
 			k_sprintf(str, "HDD found on port [%x]: Primary", scan_ports[i]);
 			k_printf(str);
 		}
+		/*
 		ret = ata_detect_hdd(scan_ports[i], 0, s_hdd_devices[n].identify_words);
 		if (ret == 0) {
 			s_hdd_devices[n].io_port_base = scan_ports[i];
@@ -102,6 +103,7 @@ int ata_detect() {
 			k_sprintf(str, "HDD found on port [%x]: Secondary", scan_ports[i]);
 			k_sprintf(str);
 		}
+		*/
 	}
 }
 
@@ -161,12 +163,19 @@ int ata_pio_lba_read(hdd_device_t* hdd, uint8_t * buff, size_t abs_lba_sector, s
 
 	_io_out8(hdd->io_port_base + STATUS_REGISTER_OFFSET, 0x20);	// read with retry
 
+	// According to OSDEV ATA PIO mode page: Many drives require a little time to respond to a "select", and push their status onto the bus. The suggestion is to read the Status register FIFTEEN TIMES, and only pay attention to the value returned by the last one -- after selecting a new master or slave device.
+	// So we read the status register 4 times here
+	for (int i = 0; i < 5; i++) 
+		_io_in8(hdd->io_port_base + STATUS_REGISTER_OFFSET);
+
+	// From the 5th time we will start to care about the value
 	while (_io_in8(hdd->io_port_base + STATUS_REGISTER_OFFSET) & BSY != 0); 
 
 	while (_io_in8(hdd->io_port_base + STATUS_REGISTER_OFFSET) & DRQ == 0);
 
 	size_t total_words = num_sectors * 256;	//  256 bytes per sector
 
+	char str[50];
 	for (int i = 0; i < total_words; i++) {
 		buffw[i] = _io_in16(hdd->io_port_base);
 	}
