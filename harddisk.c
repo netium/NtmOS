@@ -147,7 +147,7 @@ int ata_pio_lba_read(hdd_device_t* hdd, uint8_t * buff, size_t abs_lba_sector, s
 	_io_out8(hdd->io_port_base + STATUS_REGISTER_OFFSET, 0x20);	// read with retry
 
 	// According to OSDEV ATA PIO mode page: Many drives require a little time to respond to a "select", and push their status onto the bus. The suggestion is to read the Status register FIFTEEN TIMES, and only pay attention to the value returned by the last one -- after selecting a new master or slave device.
-	// So we read the status register 4 times here
+	// So we read the status register 10 times here
 	for (int i = 0; i < 10; i++) 
 		_io_in8(hdd->io_port_base + STATUS_REGISTER_OFFSET);
 
