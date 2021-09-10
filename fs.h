@@ -4,6 +4,7 @@
 #include "harddisk.h"
 
 // For harddisk MBR structure, refer to: https://en.wikipedia.org/wiki/Master_boot_record#PT
+// For FAT16 partition, refer to: http://www.maverick-os.dk/FileSystemFormats/FAT16_FileSystem.html#:~:text=The%20%EE%80%80FAT16%20file%20system%EE%80%81%20uses%20a%2016-bit%20number,The%20first%20is%20used%20on%20volumes%20with%20
 
 #pragma pack(push, 1)
 typedef struct {
@@ -33,6 +34,18 @@ typedef struct {
 #pragma pack(pop)
 
 typedef struct {
+	// Unit is sector
+	uint32_t reserved_region_start;
+	uint32_t fat_region_start;
+	uint32_t root_directory_region_start;
+	uint32_t data_region_start;
+	uint32_t reserved_region_size;
+	uint32_t fat_region_size;
+	uint32_t root_directory_region_size;
+	uint32_t data_region_size;
+} fat16_region_info_t;
+
+typedef struct {
 	hdd_device_t *hdd;
 	uint8_t type;
 	uint32_t start_lba;
@@ -42,13 +55,16 @@ typedef struct {
 typedef struct {
 	partition_t device;
 	fat16_bootsector_t fat16_bootsector;
+	fat16_region_info_t fat16_region_info;
 } filesystem_t;
 
-filesystem_t g_root_filesystem;
+extern filesystem_t g_root_filesystem;
 
 int init_root_filesystem();
 
 int partition_read(partition_t* p_partition, uint8_t * buff, size_t sector, size_t num_sectors);
 int partition_write(partition_t* p_partition, uint8_t *buff, size_t sector, size_t num_sectors);
+
+int32_t get_file_size(char* filename);
 
 #endif
