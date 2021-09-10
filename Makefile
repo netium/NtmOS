@@ -34,8 +34,8 @@ ntmio.sys: ntmio.sys.o
 ntmio.sys.o: ntmio.sys.nas
 	$(ASM) -fbin ntmio.sys.nas -o ntmio.sys.o
 
-kernel.sys: kernel_bootstrap.o kstring.o kernel.o segments.o kernel_inits.o interrupt_stubs.o kernel_functions.o k_vga.o gui.o interrupt_handlers.o k_heap.o serial_port.o k_timer.o tasks.o synchron.o keyboard.o mm.o tty.o file.o harddisk.o
-	$(LD) kernel_bootstrap.o kernel.o kernel_inits.o segments.o kernel_functions.o interrupt_stubs.o gui.o k_vga.o interrupt_handlers.o kstring.o k_heap.o serial_port.o k_timer.o tasks.o synchron.o keyboard.o mm.o tty.o file.o harddisk.o -e kernel_bootstrap_main -m elf_i386 -o kernel.sys.tmp -Ttext 0x80100000 -Map=kernel.sys.map
+kernel.sys: kernel_bootstrap.o kstring.o kernel.o segments.o kernel_inits.o interrupt_stubs.o kernel_functions.o fs.o k_vga.o gui.o interrupt_handlers.o k_heap.o serial_port.o k_timer.o tasks.o synchron.o keyboard.o mm.o tty.o file.o harddisk.o
+	$(LD) kernel_bootstrap.o kernel.o kernel_inits.o segments.o kernel_functions.o interrupt_stubs.o fs.o gui.o k_vga.o interrupt_handlers.o kstring.o k_heap.o serial_port.o k_timer.o tasks.o synchron.o keyboard.o mm.o tty.o file.o harddisk.o -e kernel_bootstrap_main -m elf_i386 -o kernel.sys.tmp -Ttext 0x80100000 -Map=kernel.sys.map
 	objcopy -O binary -j.text -j.data -j.bss -j.rodata kernel.sys.tmp kernel.sys
 
 kernel_bootstrap.o: kernel_bootstrap.nas
@@ -61,6 +61,9 @@ kernel_inits.o: kernel_inits.c kernel_inits.h
 
 kernel_functions.o: kernel_functions.nas
 	$(ASM) kernel_functions.nas -felf32 -o kernel_functions.o
+
+fs.o: fs.h fs.c
+	$(CC) $(CCFLAGS) fs.c -o fs.o
 
 gui.o: gui.c gui.h
 	$(CC) $(CCFLAGS) gui.c -o gui.o

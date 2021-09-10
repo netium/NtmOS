@@ -10,6 +10,8 @@
 #include "tasks.h"
 #include "keyboard.h"
 #include "synchron.h"
+#include "harddisk.h"
+#include "fs.h"
 
 /*
 extern layer_t * bg_window;
@@ -59,6 +61,15 @@ void kernel_main(void) {
 
 	k_printf("Init mouse completed!");
 
+	init_harddisks();
+	k_printf("Init HDD completed!");
+
+	init_root_filesystem();
+	k_printf("Root filesystem initialization complete!");
+
+	k_printf("Halt here for debug harddisk read/write");
+	halt();
+
 	init_process_management();
 
 	k_printf("Init process management subsystem completed");
@@ -69,7 +80,7 @@ void kernel_main(void) {
 
 	process_t * new_task = task_alloc();
 
-	task_init(new_task, 8192, 8192);
+	task_init(new_task, 8192, 8192 * 2);
 
 	start_task(new_task, task_main);
 
