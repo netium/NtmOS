@@ -22,17 +22,17 @@ typedef struct modern_standard_mbr {
 	uint8_t boot_signature[2];
 } mbr_t;
 
-
-
 int parse_mbr(hdd_device_t *hdd, partition_t* p_partition);
 
 int build_root_fs(hdd_device_t *hdd);
+
+int build_root_fs_from_fat16(filesystem_t * p_root_fs);		
 
 int init_root_filesystem() {
 	for (int i = 0; i < N_MAX_HDD; i++) {
 		if (g_hdd_devices[i].is_present) {
 			int ret = build_root_fs(&g_hdd_devices[i]);
-			return ret == 0 ? 0 : -1;
+			if (ret == 0) return 0;	
 		}
 	}
 
@@ -40,7 +40,15 @@ int init_root_filesystem() {
 }
 
 int build_root_fs(hdd_device_t *hdd) {
-	parse_mbr(hdd, &g_root_filesystem.device);
+	if (0 != parse_mbr(hdd, &g_root_filesystem.device))
+		return -1;
+
+	// If it's FAT16, then build up root file system from it
+	if (g_root_filesystem.device.type == 0x06) {
+		build_root_fs_from_fat16(&g_root_filesystem);		
+	}	
+
+	return -1;
 }
 
 // MBR starts here
@@ -76,4 +84,28 @@ int parse_mbr(hdd_device_t *hdd, partition_t *p_partition) {
 	}
 
 	return -1;
+}
+
+int partition_read(partition_t* p_partition, uint8_t * buff, size_t sector, size_t num_sectors) {
+	if (NULL == p_partition)
+		_panic();
+
+	if (sector + num_sectors >= p_partition->num_sectors)
+		_panic();
+
+	return ata_pio_lba_read(p_partition->hdd, buff, p_partition->start_lba + sector, num_sectors);
+}
+
+int partition_write(partition_t* p_partition, uint8_t *buff, size_t sector, size_t num_sectors) {
+	return -1;
+}
+
+int build_root_fs_from_fat16(filesystem_t * p_root_fs) {
+	partition_read(&p_root_fs->device, (uint8_t *)&p_root_fs->fat16_bootsector, 0, 1);
+
+	char str[100];
+	k_sprintf(str, "boot sector signature is :%x, %x", p_root_fs->fat16_bootsector.sectors_per_fat, p_root_fs->fat16_bootsector.sectors_per_cluster);
+	k_printf(str);
+
+	return 0;	
 }

@@ -158,7 +158,6 @@ int ata_pio_lba_read(hdd_device_t* hdd, uint8_t * buff, size_t abs_lba_sector, s
 
 	size_t total_words = num_sectors * 256;	//  256 bytes per sector
 
-	char str[50];
 	for (int i = 0; i < total_words; i++) {
 		buffw[i] = _io_in16(hdd->io_port_base);
 	}
