@@ -69,6 +69,17 @@ int k_strcmp(const char* str1, const char* str2) {
 	return *str1 - *str2;
 }
 
+int k_strncmp(const char* str1, const char* str2, size_t n) {
+	int i = 0;
+	while (*str1 != 0 && *str2 != 0 && i < n) {
+		int diff = *str1 - *str2;
+		if (diff != 0) return diff;
+		str1++, str2++;
+	}
+
+	return i == n ? 0  : *str1 - *str2;
+}
+
 size_t k_strlen(const char* str) {
 	const char *t = str;
 	while (*t != 0) t++;
@@ -237,4 +248,12 @@ int k_sprintf(char *str, const char *fmt, ...) {
 end:
 	str[l] = 0x0;
 	return l;
+}
+
+inline char k_toupper(char c) {
+	return c >= 'a' && c <= 'z' ? (c + ('A' - 'a')) : c;
+}
+
+inline char k_tolower(char c) {
+	return c >= 'A' && c <= 'Z' ? (c + ('a' - 'A')) : c;
 }

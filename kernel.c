@@ -64,11 +64,11 @@ void kernel_main(void) {
 	init_harddisks();
 	k_printf("Init HDD completed!");
 
-	init_root_filesystem();
-	k_printf("Root filesystem initialization complete!");
-
-	k_printf("Halt here for debug harddisk read/write");
-	halt();
+	int ret = init_root_filesystem();
+	if (ret == 0)
+		k_printf("Root filesystem initialization complete!");
+	else
+		k_printf("Root filesystem initialization failed!");
 
 	init_process_management();
 

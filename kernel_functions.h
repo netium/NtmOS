@@ -79,4 +79,7 @@ void _jump_usermode(void * uip, void *usp);
         __asm__ inline volatile ("pushl %[v]\npopfl"::[v] "rm" (a)); \
     } while (0)
 
+#define debug_halt(a) do { \
+        __asm__ inline volatile ("movl %[v], %%eax\n1:loop\nhlt;\njmp 1b"::[v] "m"(a):"eax"); \
+    } while(0)
 #endif
