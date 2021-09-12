@@ -65,6 +65,8 @@ int init_root_filesystem();
 int partition_read(partition_t* p_partition, uint8_t * buff, size_t sector, size_t num_sectors);
 int partition_write(partition_t* p_partition, uint8_t *buff, size_t sector, size_t num_sectors);
 
-int32_t get_file_size(char* filename);
+int32_t get_file_size(const char* filename);
+int32_t get_file_start_cluster(const char* filename);
+size_t	read_file(const char* filename, char *buf, size_t buf_size);
 
 #endif
