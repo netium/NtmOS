@@ -13,4 +13,4 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: build 
-      run: /home/runner/work/NtmOS/NtmOS/build.sh
+      run: sh /home/runner/work/NtmOS/NtmOS/build.sh
