@@ -16,10 +16,18 @@ To build the NtmOS on Ubuntu 20.10, the following tools/libraries/packages are n
 
 ## How to Build
 
-It's simple, go to the source code directory, and run the following command:
+It's simple, go to the source code directory, and run the following command (thanks for docker, we can even make the build on Windows):
+
+For Linux:
 
 ````bash
-# make clean || make
+# ./build.sh
+````
+
+For Windows:
+
+````bash
+# ./build.ps1
 ````
 
 If nothing went wrong, then you will get a 'ntmos.img' file, this is the floppy image generated, which is built as FAT12 with MBR, BL2 and kernel in it.
