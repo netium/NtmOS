@@ -13,5 +13,5 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: build 
-      run: ${{ github.acion_path }}/build.sh
+      run: /home/runner/work/NtmOS/NtmOS/build.sh
       shell: bash
