@@ -8,10 +8,9 @@ on:
 
 jobs:
   build:
-
-    runs-on: netium/ntmos-build:latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: make
-      run: make
+    - name: build 
+      run: build.sh
