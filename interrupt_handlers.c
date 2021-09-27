@@ -124,5 +124,5 @@ void int27h_handler() {
 }
 
 void int80h_handler() {
-    k_printf("System call interrupt triggered");
+//    k_printf("System call interrupt triggered");
 }

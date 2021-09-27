@@ -410,7 +410,7 @@ void scroll_up_tui_console(int nlines) {
 
     // clean the last line in the buffer
     for (int i = TUI_LINES - nlines; i < TUI_LINES; i++) {
-        k_memset(dest + i * TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM, 0, TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM);
+        k_memset(text_vbuf + i * TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM, 0, TUI_COLUMNS * TUI_BYTES_PER_CHAR_IN_VRAM);
     }
 
     cursor_y = TUI_LINES - nlines;
