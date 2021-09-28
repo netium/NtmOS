@@ -1,5 +1,6 @@
 #include "kstring.h"
 #include <stddef.h>
+#include "kvarargs.h"
 
 void* k_memcpy(void* destination, const void* source, size_t num) {
 	char* d = destination;
@@ -194,8 +195,9 @@ void *k_itoa(int num, char* str, int base){
 }
 
 int k_sprintf(char *str, const char *fmt, ...) {
-	const char * sp = (char*)&fmt;
-	sp += sizeof(const char*);
+	
+	va_list va;
+	va_start(va, fmt);
 
 	int int_temp;
 	unsigned int uint_temp;
@@ -215,27 +217,24 @@ int k_sprintf(char *str, const char *fmt, ...) {
 					str[l++] = ch;
 					break;
 				case 's':
-					string_temp = *(char **)sp;
+					string_temp = va_arg(va, char *);
 					str[l] = NULL;
 					k_strcat(str, string_temp);
 					l += k_strlen(string_temp);
-					sp += sizeof (char *);
 					break;
 				case 'd':
-					int_temp = *(int *)sp;
+					int_temp = va_arg(va, int);
 					k_itoa(int_temp, buffer, 10);
 					str[l] = NULL;
 					k_strcat(str, buffer);
 					l += k_strlen(buffer);
-					sp += sizeof (int);
 					break;
 				case 'x':
-					uint_temp = *(unsigned int *)sp;
+					uint_temp = va_arg(va, unsigned int *);
 					k_utoa(uint_temp, buffer, 16);
 					str[l] = NULL;
 					k_strcat(str, buffer);
 					l += k_strlen(buffer);
-					sp += sizeof (int);
 					break;
 				case 0:	// Reach out to the end of the format string
 					goto end;
@@ -246,6 +245,7 @@ int k_sprintf(char *str, const char *fmt, ...) {
 		}
 	}
 end:
+	va_end(va);
 	str[l] = 0x0;
 	return l;
 }
